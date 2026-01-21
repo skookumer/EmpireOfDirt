@@ -1,5 +1,6 @@
 # Introduction
 Description of the project
+We need AF_EXAC values less than 0.001
 
 # Pseudocode
 Put pseudocode in this box:
