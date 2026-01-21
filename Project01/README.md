@@ -17,7 +17,7 @@ function parse_line(string, threshold):
             return CLNDN values
 
 function read_file(path, threshold):
-    "unique" is a dict
+    unique is a dict
     for line in open(path)
         if line is legitimate
             CLNDN values = parse_line(string, threshold)
