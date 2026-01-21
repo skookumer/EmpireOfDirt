@@ -6,7 +6,7 @@ We need AF_EXAC values less than 0.001
 # Pseudocode
 Put pseudocode in this box:
 
-'''
+'''python
 function parse_line(string, threshold):
     split_string = string split on semicolon
     if "AF_EXEC" in split_string:
