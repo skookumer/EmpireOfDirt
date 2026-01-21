@@ -6,9 +6,25 @@ We need AF_EXAC values less than 0.001
 # Pseudocode
 Put pseudocode in this box:
 
-```
-Some pseudocode here
-```
+function parse_line(string, threshold):
+    split_string = string split on semicolon
+    if "AF_EXEC" in split_string:
+        get AF_EXEC value
+        if value < thresold:
+            get CLNDN values
+            return CLNDN values
+
+function read_file(path, threshold):
+    "unique" is a dict
+    for line in open(path)
+        if line is legitimate
+            CLNDN values = parse_line(string, threshold)
+            add to unique or create key in unique
+        
+    
+        
+            
+    
 
 # Successes
 Description of the team's learning points
