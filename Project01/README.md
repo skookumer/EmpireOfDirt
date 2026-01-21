@@ -24,10 +24,6 @@ function read_file(path, threshold):
             add to unique or create key in unique
             
 ```
-    
-        
-            
-    
 
 # Successes
 Description of the team's learning points
