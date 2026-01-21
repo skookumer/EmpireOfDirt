@@ -6,7 +6,7 @@ We need AF_EXAC values less than 0.001
 # Pseudocode
 Put pseudocode in this box:
 
-'''python
+```python
 
 function parse_line(string, threshold):
     split_string = string split on semicolon
@@ -23,7 +23,7 @@ function read_file(path, threshold):
             CLNDN values = parse_line(string, threshold)
             add to unique or create key in unique
             
-'''
+```
     
         
             
