@@ -37,7 +37,9 @@ def parse_line(clinvar_line, threshold):
                         # loop over each diagnosis
                         for diagnosis in clndn:
                             # make sure that the diagnosis isn't one we don't want
-                            if 'not_specified' not in diagnosis or 'not_provided' not in diagnosis:
+                            if 'not_specified' in diagnosis or 'not_provided' in diagnosis:
+                                continue
+                            else:
                                 # add it to the diagnosis list
                                 diagnosis_list.append(diagnosis)
 
