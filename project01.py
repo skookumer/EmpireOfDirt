@@ -46,3 +46,39 @@ def parse_line(clinvar_line, threshold):
             # if the AF_EXAC value doesn't meet the required threshold, return an empty list
             else:
                 return []
+                
+def read_file(vcf_file, threshold = 0.0001):
+    # create a dictionary to count the number of times a specific disease is observed
+    disease_count = {}
+
+    # opens the file
+    with open(vcf_file, 'r') as file:
+
+        # reads the file line by line
+        for line in file:
+
+            # skips the description part of the vcf file
+            if line.startswith('#'):
+                continue
+
+            # to pass the line to parse line function to get the disease list
+            disease_list = parse_line(line, threshold)
+
+            # to skip the line if None or an empty list is returned
+            if not disease_list:
+                continue
+
+            # create a loop for the returned list
+            for disease in disease_list:
+                # to check if the disease is present in the dictionary
+                if disease in disease_count:
+                    # if present, increment the count by 1
+                    disease_count[disease] += 1
+                else:
+                    # if not present, add the disease to the dictionary with a count of 1
+                    disease_count[disease] = 1
+
+    return disease_count
+
+if __name__ == "__main__":
+    pprint(read_file("clinvar_20190923_short.vcf"))
