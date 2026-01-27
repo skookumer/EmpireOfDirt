@@ -46,6 +46,8 @@ def parse_line(clinvar_line, threshold):
                                 diagnosis_list.append(diagnosis)
 
                         return diagnosis_list
+    
+    # return empty list at the end to catch all possible failure cases
     return []
 
 from regex_script import parse_function
