@@ -23,19 +23,15 @@ def parse_function(text, threshold_key, retrieval_key, threshold=0.0001):
     return []
 
 
-def read_file(path, avoid={"not_provided", "not_specified"}):
+def read_file(path=path, avoid={"not_provided", "not_specified"}, threshold=0.0001):
     '''
     scroll thru the lines of the file and read them one by one
     add unique items to dict and count them
     '''
     unique = defaultdict(int)                                               # use defaultdict to initialize values
     for line in open(path, "r", encoding="utf-8"):
-        dn_vals = parse_function(line, "AF_EXAC", "CLNDN")
+        dn_vals = parse_function(line, "AF_EXAC", "CLNDN", threshold)
         for dn in dn_vals:
             unique[dn] += 1
     [unique.pop(key) for key in avoid]                                      # remove unwanted values
     return dict(unique)                                                     # cast as dict for return
-    
-
-results = read_file(path)
-print(results)
