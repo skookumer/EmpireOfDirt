@@ -1,4 +1,4 @@
-import pprint
+from pprint import pprint
 
 def parse_line(clinvar_line, threshold):
 
@@ -46,10 +46,9 @@ def parse_line(clinvar_line, threshold):
                                 diagnosis_list.append(diagnosis)
 
                         return diagnosis_list
+    return []
 
-            # if the AF_EXAC value doesn't meet the required threshold, return an empty list
-            else:
-                return []
+from regex_script import parse_function
                 
 def read_file(vcf_file, threshold = 0.0001):
     # create a dictionary to count the number of times a specific disease is observed
