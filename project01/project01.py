@@ -1,3 +1,5 @@
+import pprint
+
 def parse_line(clinvar_line, threshold):
 
     # define the accepted data (allowed_data = 'AF_EXAC')
