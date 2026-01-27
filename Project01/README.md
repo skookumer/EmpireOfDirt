@@ -34,7 +34,7 @@ Description of the stumbling blocks the team experienced
 
 # Personal Reflections
 ## Group Leader
-Group leader's reflection on the project
+There's more than one way to skin a cat...
 
 ## Other member
 Other members' reflections on the project
