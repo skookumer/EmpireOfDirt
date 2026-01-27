@@ -61,6 +61,6 @@ Other members' reflections on the project
 
 # Generative AI Appendix
 - Used to generate a basic unittest test scheme (It's been a year since I've used it). Model: Sonnet-4.5. Prompt: could you write a basic unittest scheme
-- Some syntax checking for regex. I didn't know you could use an f-string directly with regex. Model: Sonnet-4.5. Prompt: how might I write a regex pattern that searches for {keyword}= ; and returns the stuff between the equals and the semicolon
+- Some syntax checking for regex. I don't have extensive experience with regex, and I didn't know you could use an f-string directly with regex. Model: Sonnet-4.5. Prompt: how might I write a regex pattern that searches for {keyword}= ; and returns the stuff between the equals and the semicolon
 
 
