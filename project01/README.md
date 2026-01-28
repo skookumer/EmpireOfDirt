@@ -54,6 +54,8 @@ function read_file(path, threshold):
 ## Group Leader (Eric Arnold)
 Coding is like playing a musical instrument. It is a highly specialized activity and the user interface is unintuitive. It takes a while to get the hang of, but one you know your scales and can play in tune, you can really jam. This is the struggle before the jam.
 
+I don't have much to say other than that because I am a data science student and have to deal with file I/O regularly. It was fun talking through the problem and the challenges associated with python fundamentals.
+
 ## Other member
 
 ### Connor Crawford
@@ -64,7 +66,11 @@ A language based problem that I ran into came when accessing the values containe
 
 It's worth noting that there are a few nested for loops in the parse_line function and it does quite a few things. Converting the tuple list into a dictionary to avoid the nested for loops and splitting the parse_line function into smaller functions could make the same "method" of execution more efficient and elegant.
 
-Since it's been quite a while since I worked with Python, this project helped me brush up the basics and get me back on track. Also, I used to believe analysing the genomic data is the hardest part of all, but now I realised that interpreting the data is equally crucial and hard. 
+Since it's been quite a while since I worked with Python, this project helped me brush up the basics and get me back on track. Also, I used to believe analysing the genomic data is the hardest part of all, but now I realised that interpreting the data is equally crucial and hard.
+
+### Aaronie Jersha Jenyfred
+
+Since it's been quite a while since I worked with Python, this project helped me brush up the basics and get me back on track. Also, I used to believe analysing the genomic data is the hardest part of all, but now I realised that interpreting the data is equally crucial and hard.
 
 # Generative AI Appendix
 - Used to generate a basic unittest test scheme (It's been a year since I've used it). Model: Sonnet-4.5. Prompt: could you write a basic unittest scheme
