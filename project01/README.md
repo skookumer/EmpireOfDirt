@@ -59,6 +59,8 @@ Other members' reflections on the project
 
 (make sure to mention: positioning the return statement -- I had to change this because it was bugged in the latest version -- and the use of continue as an artifact of dealing with none types)
 
+Since it's been quite a while since I worked with Python, this project helped me brush up the basics and get me back on track. Also, I used to believe analysing the genomic data is the hardest part of all, but now I realised that interpreting the data is equally crucial and hard. 
+
 # Generative AI Appendix
 - Used to generate a basic unittest test scheme (It's been a year since I've used it). Model: Sonnet-4.5. Prompt: could you write a basic unittest scheme
 - Some syntax checking for regex. I don't have extensive experience with regex, and I didn't know you could use an f-string directly with regex. Model: Sonnet-4.5. Prompt: how might I write a regex pattern that searches for {keyword}= ; and returns the stuff between the equals and the semicolon
