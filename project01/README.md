@@ -55,9 +55,14 @@ function read_file(path, threshold):
 Coding is like playing a musical instrument. It is a highly specialized activity and the user interface is unintuitive. It takes a while to get the hang of, but one you know your scales and can play in tune, you can really jam. This is the struggle before the jam.
 
 ## Other member
-Other members' reflections on the project
 
-(make sure to mention: positioning the return statement -- I had to change this because it was bugged in the latest version -- and the use of continue as an artifact of dealing with none types)
+### Connor Crawford
+
+One interesting issue we ran into was dealing with NoneTypes being returned from our parse_line function. Originally, we had the return of an empty list for unsatisfactory conditions positioned after an else statement at the end of the function. This would only return the empty list if the AF_EXAC value wasn't in the line, however, there were situations where we wanted an empty list returned even if AF_EXAC was found in the line. The simple fix ended up being to take away the else statement and just return an empty list, this returned an empty list for any condition other than the ones that met the specific requirements to return a list of diagnosis values.
+
+A language based problem that I ran into came when accessing the values contained in a tuple. It's been a while since I've done much coding in Python, but I have been working in R a lot, where indexing elements starts at 1, not 0. As you can guess Python didn't like when I tried to access the second element of a tuple that only had two values with 2 instead of 1. This assignment definitely helped jog my memory, specifically in regards to string operations, indexing, and working with the control statements in Python.
+
+It's worth noting that there are a few nested for loops in the parse_line function and it does quite a few things. Converting the tuple list into a dictionary to avoid the nested for loops and splitting the parse_line function into smaller functions could make the same "method" of execution more efficient and elegant.
 
 # Generative AI Appendix
 - Used to generate a basic unittest test scheme (It's been a year since I've used it). Model: Sonnet-4.5. Prompt: could you write a basic unittest scheme
