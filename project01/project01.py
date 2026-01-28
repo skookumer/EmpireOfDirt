@@ -1,4 +1,7 @@
 from pprint import pprint
+from pathlib import Path
+
+home = Path(__file__).parent
 
 def parse_line(clinvar_line, threshold):
 
@@ -57,7 +60,7 @@ def read_file(vcf_file, threshold = 0.0001):
     disease_count = {}
 
     # opens the file
-    with open(vcf_file, 'r') as file:
+    with open(home / vcf_file, 'r') as file:
 
         # reads the file line by line
         for line in file:
