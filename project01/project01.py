@@ -52,8 +52,6 @@ def parse_line(clinvar_line, threshold):
     
     # return empty list at the end to catch all possible failure cases
     return []
-
-from regex_script import parse_function
                 
 def read_file(vcf_file, threshold = 0.0001):
     # create a dictionary to count the number of times a specific disease is observed
