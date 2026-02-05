@@ -5,8 +5,11 @@ Description of the project
 Put pseudocode in this box:
 
 ```python
-GibbsMotifFinder(DNA, k-length)
+function GibbsMotifFinder(DNA, k-length)
     random pick of k-length sequences from each line of DNA as Motifs
+    build frequency matrix for random k-mers
+    build non-motif position array
+    
     for j ← 1 to 10000 or Motifs stops changing
         i ← Random(N) where N is number of DNA entries
         PWM ← PWM constructed from all Motifs except for Motifi
