@@ -33,11 +33,12 @@ class sequence_box:
         total_freqs = np.bincount(self.seqs)
         pfm = utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
         motif_freqs = pfm.sum(axis=0)
-        print(total_freqs)
-        print(motif_freqs)
         if total_freqs.shape[0] != motif_freqs.shape[0]:
             raise IndexError("array mismatch")
         return total_freqs - motif_freqs
     
     def init_pfm(self):
         return utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
+
+    def get_str_list_format_motifs(self):
+        return [utils.decode_sequence(entry) for entry in self.motifs]
