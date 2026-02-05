@@ -5,6 +5,7 @@ import numpy as np
 from numba import jit, njit
 
 home = Path(__file__).parent
+decode_map = np.array(['A', 'C', 'G', 'T', 'N'])
 
 class utils:
 
@@ -58,13 +59,26 @@ class utils:
         print("data ready :)")
         return seqs
     
+    def init_base_encoding_map():
+        base_map = np.zeros(256, dtype=np.int8)
+        base_map[ord('A')] = 0
+        base_map[ord('C')] = 1
+        base_map[ord('G')] = 2
+        base_map[ord('T')] = 3
+        base_map[ord('N')] = 4
+        return base_map
+    
+    def decode_sequence(seq):
+        return "".join(decode_map[seq])
+
+    
     def seq_to_array(seq, base_map):
         seq_array = np.frombuffer(seq.encode(), dtype=np.int8)
         indices = base_map[seq_array]
         return indices
     
     @njit
-    def convert_sequences(all_bytes, base_map):
+    def encode_sequences(all_bytes, base_map):
         mdata = np.empty(len(all_bytes), dtype=np.int8)
         for i in range(len(all_bytes)):
             mdata[i] = base_map[all_bytes[i]]
