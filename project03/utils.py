@@ -11,53 +11,35 @@ class utils:
 
     def io_monster(mode, n_rows=0):
 
-        def read_bam_subset():
-            seqs = []
-            data = bs.AlignmentFile(bam_path)
-            i = 0
-            for read in data:
-                seqs.append(read.seq)
-                if i == n_rows:
-                    break
-                i += 1
-            return seqs
-        
-        def write_txt_file(seqs):
-            with open(txt_path, "w", encoding="utf-8") as f:        
-                for line in seqs:
-                    f.write(f"{line}\n")
-        
-        def read_txt_file():
-            seqs = []
-            with open(txt_path, "r", encoding="utf-8") as f:
-                for line in f.readlines():
-                    seqs.append(line.strip())
-            return seqs
+        def read_encode_bam():
+            seqs = [read.seq for read in bs.AlignmentFile(bam_path)]
+            lengths = np.array([len(seq) for seq in seqs], dtype=np.int32)                                 #store the indices of the reads so we can retrieve them later
+            all_bytes = np.frombuffer("".join(seqs).encode(), dtype=np.uint8)   #flatten the whole genome into a byte array (strings -> bytes)
+            encode_map = utils.init_base_encoding_map()
+            seqs = utils.encode_sequences(all_bytes, encode_map)                 #use the fast numba function to encode the bytes as nucleotides (bytes -> encodings)
+            indptr = np.zeros(len(lengths) + 1, dtype=np.int32)             #build indptr (map of indices in flat array)
+            indptr[1:] = np.cumsum(lengths)                                 #get the fenceposts of all sequences in the flat array
+            np.savez_compressed(npz_path, seqs=seqs, indptr=indptr)
 
+
+        npz_name = "processed_data.npz"
         bam_path = home / "data" / "SRR9090854.subsampled_5pct.bam"
-        txt_path = home / "data" / "converted_data.txt"
+        npz_path = home / "data" / npz_name
 
         if mode == "test":                                                  #use a test file if testmode specified
             print("loading bam test data query sequences")
             bam = bs.AlignmentFile(bs.example_bam, 'rb')
             seqs = [seq.query_sequence for seq in bam]
-        elif n_rows == 0:                                                   #READ THE WHOLE THING
-            seqs = [read.seq for read in bs.AlignmentFile(bam_path)]
         else:                                                               #If n_rows != 0, use a text file containing the specified number of rows
-            if not txt_path.exists():                                       #text file does not exist
-                print(f"converted_data.txt does not exist, get ready for bammage. reading {n_rows} rows from bam.")
-                seqs = read_bam_subset()
-                write_txt_file(seqs)
+            if not npz_path.exists():                                       #text file does not exist
+                print(f"{npz_name} does not exist, get ready for bammage. reading from bam.")
+                read_encode_bam()
             else:
-                print(f"converted_data.txt exists, reading {n_rows} rows from path")
-                seqs = read_txt_file()
-                if len(seqs) != n_rows:
-                    print(f"row mismatch; reading from bam. CANCEL IF THE n_rows IS WRONG")
-                    seqs = read_bam_subset()
-                    write_txt_file(seqs)
-
-        print("data ready :)")
-        return seqs
+                print(f"{npz_name} exists, reading {n_rows} rows from path")
+            npz = np.load(npz_path)
+            print("data ready :)")
+            return npz["seqs"], npz["indptr"]
+        return seqs, None
     
     def init_base_encoding_map():
         base_map = np.zeros(256, dtype=np.int8)
@@ -85,16 +67,14 @@ class utils:
         return mdata
     
     @njit
-    def fast_init(flat_seqs, n_rows, lengths, k):
+    def fast_init(flat_seqs, n_rows, indptr, k):
         motifs = np.zeros((n_rows, k), dtype=np.int8)                   #init array for motif storage
-        indptr = np.zeros(len(lengths) + 1, dtype=np.int32)             #build indptr (map of indices in flat array)
-        indptr[1:] = np.cumsum(lengths)                                 #get the fenceposts of all sequences in the flat array
         idxs = np.zeros(n_rows, dtype=np.int32)                         #init array for motif indices
         for i in range(n_rows):
             idx = np.random.randint(indptr[i], indptr[i+1] - k + 1)     #choose random index
             motifs[i] = flat_seqs[idx:idx+k]                            #get the motif
             idxs[i] = idx + indptr[i]                                   #save the chosen motif index at its position within that sequence
-        return motifs, idxs, indptr
+        return motifs, idxs
     
     @njit
     def build_pfm_fast(motifs, k, n_rows, n_bases=5):
