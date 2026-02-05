@@ -8,8 +8,8 @@ from pprint import pprint
 
 #import function for building sequence motif & idenfitying seqs matching to motif
 from data_readers import *
-from seq_ops import get_seq, reverse_complement
-from motif_ops import build_pfm, build_pwm
+import seq_ops
+import motif_ops
 
 from joblib import parallel, delayed
 
@@ -18,13 +18,7 @@ from sequence_database import sequence_box
 from collections import Counter, defaultdict
 
 bases = ["A", "T", "C", "G", "N"]
-
-base_map = np.zeros(256, dtype=np.int8)
-base_map[ord('A')] = 0
-base_map[ord('C')] = 1
-base_map[ord('G')] = 2
-base_map[ord('T')] = 3
-base_map[ord('N')] = 4
+encode_map = utils.init_base_encoding_map()
 
 
 
@@ -50,7 +44,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", max_iter=1024,
             print("randomly choosing motifs from each read")
         lengths = np.array([len(seq) for seq in seqs], dtype=np.int32)                                 #store the indices of the reads so we can retrieve them later
         all_bytes = np.frombuffer("".join(seqs).encode(), dtype=np.uint8)   #flatten the whole genome into a byte array (strings -> bytes)
-        seqs = utils.convert_sequences(all_bytes, base_map)                 #use the fast numba function to encode the bytes as nucleotides (bytes -> encodings)
+        seqs = utils.encode_sequences(all_bytes, encode_map)                 #use the fast numba function to encode the bytes as nucleotides (bytes -> encodings)
         motifs, idxs, indptr = utils.fast_init(seqs, n_rows, lengths, k)             #use another fast numba function to randomly pick motifs and save the indices
         seq_box = sequence_box(indptr, seqs, idxs, motifs, k)                                                  #store the flat motif array with the indices in a python object for easy retrieval
         if toprint:
@@ -67,14 +61,46 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", max_iter=1024,
     seq_box = initialize_motifs(seqs, k)
     
     print("building frequency matrix")
-    freq_matrix = seq_box.init_pfm()                #the PFM is built according to Marcus's specs
+    pfm = seq_box.init_pfm()                #the PFM is built according to Marcus's specs
 
     print("getting background frequencies")
     bg = seq_box.init_bg()
         
-    
-    pprint(freq_matrix)
     pprint(bg)
+
+    import time
+
+    s = time.time()
+    pfm = seq_box.init_pfm()
+    pwm = motif_ops.build_pwm(pfm)
+    e = time.time()
+    print(f"{e - s} time to build pwm with seq_box")
+    pprint(pwm)
+
+    sl_seqs = seq_box.get_str_list_format_motifs()
+
+    s = time.time()
+    pfm = motif_ops.build_pfm(sl_seqs, 5)
+    pwm = motif_ops.build_pwm(pfm)
+    e = time.time()
+    print(f"{e - s} time to build with string-list format")
+
+
+
+    '''
+    Example iteration
+    '''
+
+    for i in range(len(seq_box)):
+        print(seq_box[i])
+        x = utils.decode_sequence(seq_box[i])
+        print(x)
+        print(seqs[i])
+        if x != seqs[i]:
+            print("ERROR")
+            input()
+        print()
+        input()
 
 
     '''
@@ -90,12 +116,6 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", max_iter=1024,
 
 
 GibbsMotifFinder(k=6)
-    # converged = False
-    # i = 0
-    # while converged == False and i < max_iter:
-    #     pfm = build_pfm()
-    #     pwm = build_pwm()
-    #     i += 1
 
 
 
