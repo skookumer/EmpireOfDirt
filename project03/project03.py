@@ -45,37 +45,27 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", max_iter=1024,
     random.seed(seed)
     rng = np.random.default_rng(seed)
 
-    
-    import time
-
     seqs, indptr = utils.io_monster(mode, n_rows)
     motifs, midx = utils.fast_init(seqs, n_rows, indptr, k)
     seq_box = sequence_box(indptr, seqs, midx, motifs, k)
     
-    print("building frequency matrix\n")
     pfm = seq_box.init_pfm()                #the PFM is built according to Marcus's specs
 
-    print("getting background frequencie\n")
     bg = seq_box.init_bg()
-        
-    pprint(bg)
 
-    s = time.time()
-    pfm = seq_box.init_pfm()
     pwm1 = motif_ops.build_pwm(pfm)
-    e = time.time()
-    print(f"{e - s} time to build pwm with seq_box\n")
 
-    sl_seqs = seq_box.get_str_list_format_motifs()
+    pprint(pfm)
 
-    s = time.time()
-    pfm = motif_ops.build_pfm(sl_seqs, 5)
+    data = seq_box.get_str_list_format_motifs()
+    pfm = motif_ops.build_pfm(data, k)
     pwm2 = motif_ops.build_pwm(pfm)
-    e = time.time()
-    print(f"{e - s} time to build with string-list forma\n")
-    
+
+    pprint(pfm)
+
     pprint(pwm1)
     pprint(pwm2)
+    
     print("\n")
 
 
