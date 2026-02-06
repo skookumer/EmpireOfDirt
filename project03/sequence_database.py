@@ -1,5 +1,4 @@
 import numpy as np
-from numba import njit
 from utils import utils
 
 
@@ -30,15 +29,25 @@ class sequence_box:
             yield self.__getitem__(i)
 
     def init_bg(self):
+        print("getting background frequencies\n")
         total_freqs = np.bincount(self.seqs)
-        pfm = utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
-        motif_freqs = pfm.sum(axis=0)
+        pfm = utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases, slice_last_row=False)
+        motif_freqs = pfm.sum(axis=1)
         if total_freqs.shape[0] != motif_freqs.shape[0]:
-            raise IndexError("array mismatch")
+            raise IndexError("array mismatch :((")
         return total_freqs - motif_freqs
     
     def init_pfm(self):
+        print("building frequency matrix\n")
         return utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
 
     def get_str_list_format_motifs(self):
         return [utils.decode_sequence(entry) for entry in self.motifs]
+
+    def get_str_list_format_seqs(self):
+        output = []
+        for i in range(len(self.indptr) - 1):
+            x = self.indptr[i]
+            y = self.indptr[i + 1]
+            output.append(utils.decode_sequence(self.seqs[x:y]))
+        return output
