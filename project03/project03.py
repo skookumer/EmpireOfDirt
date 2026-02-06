@@ -48,25 +48,12 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", max_iter=1024,
     seqs, indptr = utils.io_monster(mode, n_rows)
     motifs, midx = utils.fast_init(seqs, n_rows, indptr, k)
     seq_box = sequence_box(indptr, seqs, midx, motifs, k)
-    
-    pfm = seq_box.init_pfm()                #the PFM is built according to Marcus's specs
 
     bg = seq_box.init_bg()
-
-    pwm1 = motif_ops.build_pwm(pfm)
-
-    pprint(pfm)
-
-    data = seq_box.get_str_list_format_motifs()
-    pfm = motif_ops.build_pfm(data, k)
-    pwm2 = motif_ops.build_pwm(pfm)
+    pfm = seq_box.init_pfm()
+    pwm = motif_ops.build_pwm(pfm)
 
     pprint(pfm)
-
-    pprint(pwm1)
-    pprint(pwm2)
-    
-    print("\n")
 
 
     '''
