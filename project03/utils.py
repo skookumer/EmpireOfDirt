@@ -6,6 +6,7 @@ from numba import jit, njit
 
 home = Path(__file__).parent
 decode_map = np.array(['A', 'C', 'G', 'T', 'N'])
+complement_map = np.array([3, 2, 1, 0, 4])
 
 class utils:
 
@@ -77,12 +78,30 @@ class utils:
         return motifs, idxs
     
     @njit
-    def build_pfm_fast(motifs, k, n_rows, n_bases=5):
-        pfm = np.zeros((k, n_bases), dtype=np.int32)
+    def build_pfm_fast(motifs, k, n_rows, n_bases=5, slice_last_row=True):
+        pfm = np.zeros((n_bases, k), dtype=np.int32)
         for i in range(n_rows):
             for j in range(k):
-                pfm[j, motifs[i, j]] += 1
+                pfm[motifs[i, j], j] += 1
+        if slice_last_row:
+            pfm[0, :] += pfm[-1, :]
+            return pfm[:-1, :]
         return pfm
+    
+    def fast_complement(seq):
+        flipped = complement_map[seq[::-1]]
+        return flipped
+    
+
+
+
+
+# x = ["GATTACA"]
+# x = np.frombuffer("".join(x).encode(), dtype=np.uint8)
+# xx = utils.encode_sequences(x, utils.init_base_encoding_map())
+# yy = utils.fast_complement(xx)
+# print(utils.decode_sequence(yy))
+
 
 
         
