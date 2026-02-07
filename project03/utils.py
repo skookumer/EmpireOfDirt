@@ -1,6 +1,7 @@
 import bamnostic as bs
 from pathlib import Path
 import numpy as np
+from scipy.special import softmax 
 
 from numba import jit, njit
 
@@ -10,7 +11,7 @@ complement_map = np.array([3, 2, 1, 0, 4])
 
 class utils:
 
-    def io_monster(mode, n_rows=0):
+    def io_monster(mode):
 
         def read_encode_bam():
             seqs = [read.seq for read in bs.AlignmentFile(bam_path)]
@@ -31,12 +32,17 @@ class utils:
             print("loading bam test data query sequences")
             bam = bs.AlignmentFile(bs.example_bam, 'rb')
             seqs = [seq.query_sequence for seq in bam]
+        elif mode == "vanilla":
+            print("loading directly from bam (SLOW)")
+            bam = bs.AlignmentFile(bs.example_bam, 'rb')
+            seqs = [seq.query_sequence for seq in bam]
+            return seqs
         else:                                                               #If n_rows != 0, use a text file containing the specified number of rows
             if not npz_path.exists():                                       #text file does not exist
                 print(f"{npz_name} does not exist, get ready for bammage. reading from bam.")
                 read_encode_bam()
             else:
-                print(f"{npz_name} exists, reading {n_rows} rows from path")
+                print(f"{npz_name} exists, reading from path")
             npz = np.load(npz_path)
             print("data ready :)")
             return npz["seqs"], npz["indptr"]
@@ -88,9 +94,46 @@ class utils:
             return pfm[:-1, :]
         return pfm
     
+    @njit
     def fast_complement(seq):
-        flipped = complement_map[seq[::-1]]
-        return flipped
+        return complement_map[seq[::-1]]
+    
+    @njit
+    def fast_subdivide(seq, rev_seq, k):
+        motif_indices = len(seq) - k
+        fwd_motifs = np.zeros((motif_indices, k), dtype=np.int8)
+        rev_motifs = np.zeros((motif_indices, k), dtype=np.int8)
+        for i in range(len(seq) - k):
+            fwd_motifs[i] = seq[i:i+k]
+            rev_motifs[i] = rev_seq[i:i+k]
+        return fwd_motifs, rev_motifs
+
+    @njit
+    def fast_score(motif_array, pwm):
+        scores = np.zeros(len(motif_array), dtype=np.float64)
+        for i in range(len(motif_array)):
+            motif = motif_array[i]
+            score = 0
+            for j in range(len(motif)):
+                score += pwm[motif[j], j]
+            scores[i] = score
+        return scores
+
+    def choose_best(fwd, rev, pwm, p_method):
+        methods = {"softmax": lambda x: softmax(x)}
+        fwd_score = utils.fast_score(fwd, pwm)
+        rev_score = utils.fast_score(rev, pwm)
+        score_dist = np.concatenate([fwd_score, rev_score], axis=0)
+        if p_method not in methods:
+            raise ValueError("improper probability method")
+        p_dist = methods[p_method](score_dist)
+        all_motifs = np.concatenate([fwd, rev], axis=0)
+        idx =  np.random.choice(len(all_motifs), p=p_dist)
+        return all_motifs[idx]
+
+
+            
+
     
 
 
