@@ -28,7 +28,7 @@ class sequence_box:
         for i in range(self.n_rows):
             yield self.__getitem__(i)
 
-    def init_bg(self):
+    def get_bg(self):
         print("getting background frequencies\n")
         total_freqs = np.bincount(self.seqs)
         pfm = utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases, slice_last_row=False)
@@ -37,9 +37,13 @@ class sequence_box:
             raise IndexError("array mismatch :((")
         return total_freqs - motif_freqs
     
-    def init_pfm(self):
+    def get_pfm(self, to_mask=None):
         print("building frequency matrix\n")
-        return utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
+        if to_mask is not None:
+            return utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
+        mask = np.ones(shape=self.n_rows, dtype=np.bool_)
+        mask[to_mask] = False
+        return utils.build_pfm_fast(self.motifs[mask], self.k, self.n_rows - 1, self.n_bases)
 
     def get_str_list_format_motifs(self):
         return [utils.decode_sequence(entry) for entry in self.motifs]
