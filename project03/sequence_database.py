@@ -13,6 +13,7 @@ class sequence_box:
         self.motifs = motifs
         self.k = k
         self.n_bases = n_bases
+        self.selected_motif = None
     
     def __len__(self):
         return self.n_rows
@@ -37,12 +38,11 @@ class sequence_box:
             raise IndexError("array mismatch :((")
         return total_freqs - motif_freqs
     
-    def get_pfm(self, to_mask=None):
-        print("building frequency matrix\n")
-        if to_mask is not None:
+    def get_pfm(self, to_mask=False):
+        if not to_mask:
             return utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
         mask = np.ones(shape=self.n_rows, dtype=np.bool_)
-        mask[to_mask] = False
+        mask[self.selected_motif] = False
         return utils.build_pfm_fast(self.motifs[mask], self.k, self.n_rows - 1, self.n_bases)
 
     def get_str_list_format_motifs(self):
@@ -55,3 +55,10 @@ class sequence_box:
             y = self.indptr[i + 1]
             output.append(utils.decode_sequence(self.seqs[x:y]))
         return output
+    
+    def select_random_motif(self):
+        self.selected_motif = np.random.randint(0, len(self.motifs))
+        return self.__getitem__(self.selected_motif)
+    
+    def update_motifs(self, motif):
+        self.motifs[self.selected_motif] = motif
