@@ -3,7 +3,7 @@
 import random
 import numpy as np
 import bamnostic as bs
-import seqlogo as sl
+import seqlogo
 from pprint import pprint
 
 #import function for building sequence motif & idenfitying seqs matching to motif
@@ -66,6 +66,10 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", max_iter=1024,
      #  x = utils.decode_sequence(seq_box[i])
       #  print(x)
        # input()
+
+    bg = seq_box.get_bg()
+    pfm = seq_box.get_pfm()
+    pwm = motif_ops.build_pwm(pfm)
 
 
     '''
