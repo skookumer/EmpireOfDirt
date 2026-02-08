@@ -57,7 +57,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
     '''
     -----------------------------------------------ITERATION LOOP---------------------------------------
     '''
-
+    i = 0
     if speed == "pythonic:":
 
         #SLICING SUBSET
@@ -70,7 +70,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
         mots = seq_box.get_str_list_format_motifs()
 
         converged = False
-        i = 0
+        #i = 0
         while converged == False and i < max_iter:
 
             mot_pick = np.random.randint(0, len(sample_list))
@@ -118,7 +118,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
         if toprint:
             print(f"beginning fast iteration")
         converged = False
-        i = 0
+        #i = 0
 
         while converged == False and i < max_iter:
             print(f"\rIteration {i}", end="", flush=True)
@@ -173,12 +173,12 @@ def consensus(results, top_k=20):
     return votes.most_common(top_k)
     
 
-threads = 16
+# threads = 16
 
-results = Parallel(n_jobs=threads)([delayed(GibbsMotifFinder)(k=6, speed="fast", rtol=1e-5, max_iter=6000) for _ in range(threads)])
+# results = Parallel(n_jobs=threads)([delayed(GibbsMotifFinder)(k=6, speed="fast", rtol=1e-5, max_iter=6000) for _ in range(threads)])
 
-top_k = consensus(results)
-print(top_k)
+# top_k = consensus(results)
+# print(top_k)
 
 
 
