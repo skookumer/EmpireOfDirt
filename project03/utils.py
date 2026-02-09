@@ -119,8 +119,8 @@ class utils:
             scores[i] = score
         return scores
 
-    def choose_best(fwd, rev, pwm, p_method):
-        methods = {"softmax": lambda x: softmax(x)}
+    def choose_best(fwd, rev, pwm, p_method, temp=0.1):
+        methods = {"softmax": lambda x: softmax(x / temp)}
         fwd_score = utils.fast_score(fwd, pwm)
         rev_score = utils.fast_score(rev, pwm)
         score_dist = np.concatenate([fwd_score, rev_score], axis=0)
