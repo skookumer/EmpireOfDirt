@@ -205,16 +205,14 @@ def aggregate_matrices(matrices):
 # print(random_ppm)
 # ppm = seqlogo.Ppm(random_ppm)
 
+if __name__=="__main__":
+    # Run the gibbs sampler:
+    pfm = GibbsMotifFinder(k=10, speed="fast", max_iter=1000, toprint=True, rtol=1e-30, atol=1e-30, subsample_size=3000000)
+
+    ppm = seqlogo.CompletePm(pfm = pfm)
 
 
-from sklearn.preprocessing import normalize
-# Run the gibbs sampler:
-pfm = GibbsMotifFinder(k=10, speed="fast", max_iter=1000, toprint=True, rtol=1e-30, atol=1e-30, subsample_size=3000000)
-
-ppm = seqlogo.CompletePm(pfm = pfm)
-
-
-# Plot the final pfm that is generated: 
-seqlogo.seqlogo(ppm, ic_scale=False, format="png", size="large", filename="test.png")
+    # Plot the final pfm that is generated: 
+    seqlogo.seqlogo(ppm, ic_scale=False, format="png", size="large", filename="test.png")
 
 
