@@ -25,7 +25,7 @@ import time
 
 
 
-def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythonic", p_method="softmax", rtol=1e-5, atol=1e-10, max_iter=1024, seed=None, toprint=True):
+def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythonic", p_method="softmax", rtol=1e-5, atol=1e-10, max_iter=1024, seed=None, toprint=True, temp=0.1):
     '''
     Function to find a pfm from a list of strings using a Gibbs sampler
     
@@ -90,7 +90,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
                 score = motif_ops.score_kmer(rev_seq[x:x+k], pwm)
                 scores.append(score)
             
-            prob = softmax(scores)
+            prob = softmax(scores / temp)
             #print(prob)
             idx = np.random.choice(np.arange(len(scores)), p=prob)
 
@@ -148,7 +148,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
 
         print(f'\nAfter {i} iterations, final motif list: {output[:20]}')
     
-    return output
+    return pfm
 
     
         
@@ -185,13 +185,25 @@ def consensus(results, top_k=20):
 
 # GibbsMotifFinder(k=6, speed="fast", rtol=1e-5, max_iter=6000)
 
+# np.random.seed(42)
+
+# Making a fake PWM
+random_ppm = np.random.dirichlet(np.ones(4), size=6)
+print(random_ppm)
+ppm = seqlogo.Ppm(random_ppm)
 
 
 
-# # Run the gibbs sampler:
-# promoter_pfm = GibbsMotifFinder(seqs,10 )
+from sklearn.preprocessing import normalize
+# Run the gibbs sampler:
+pfm = GibbsMotifFinder(k=6, speed="fast", max_iter=1000, toprint=True)
+print(pfm)
+pfm = normalize(pfm.T, norm="l1", axis=1)
+print(pfm)
+ppm = seqlogo.CompletePm(pfm = pfm)
 
-# # Plot the final pfm that is generated: 
-# seqlogo.seqlogo(seqlogo.CompletePm(pfm = promoter_pfm.T))
+
+# Plot the final pfm that is generated: 
+seqlogo.seqlogo(ppm, ic_scale=False, format="png", size="large", filename="test.png")
 
 
