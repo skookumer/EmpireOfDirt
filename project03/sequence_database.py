@@ -14,6 +14,8 @@ class sequence_box:
         self.k = k
         self.n_bases = n_bases
         self.selected_motif = None
+        self.frozen = np.zeros(shape=self.n_rows, dtype=bool)
+        self.sampling_pool = np.zeros(shape=self.n_rows, dtype=bool)
     
     def __len__(self):
         return self.n_rows
@@ -41,9 +43,10 @@ class sequence_box:
     def get_pfm(self, to_mask=False):
         if not to_mask:
             return utils.build_pfm_fast(self.motifs, self.k, self.n_rows, self.n_bases)
-        mask = np.ones(shape=self.n_rows, dtype=np.bool_)
+        mask = self.frozen
         mask[self.selected_motif] = False
-        return utils.build_pfm_fast(self.motifs[mask], self.k, self.n_rows - 1, self.n_bases)
+        motif_array = self.motifs[mask]
+        return utils.build_pfm_fast(motif_array, self.k, len(motif_array), self.n_bases)
 
     def get_str_list_format_motifs(self):
         return [utils.decode_sequence(entry) for entry in self.motifs]
@@ -62,3 +65,42 @@ class sequence_box:
     
     def update_motifs(self, motif):
         self.motifs[self.selected_motif] = motif
+
+    def unfreeze_random(self, subsample_size):
+        frozen_indices = np.where(self.frozen == 0)[0]
+        if len(frozen_indices) > subsample_size:
+            samp_size = subsample_size
+        else:
+            samp_size = len(frozen_indices)
+
+        indices = np.random.choice(frozen_indices, size=samp_size, replace=False)
+        self.frozen[indices] = True
+        self.sampling_pool[indices] = True
+    
+    def reset_sampling_pool(self):
+        self.sampling_pool = np.zeros(shape=self.n_rows, dtype=bool)
+
+    def select_random_sampling_motif(self):
+        sampling_indices = np.where(self.sampling_pool == 1)[0]
+        self.selected_motif = np.random.choice(sampling_indices)
+        return self.__getitem__(self.selected_motif)
+    
+    def split_subsamples(self, subsample_size):
+        i = 0
+        j = 0
+        subsamples = []
+        while i < self.n_rows:
+            j = min(i + subsample_size, self.n_rows)
+            offset = self.indptr[i]
+            indptr = [value - offset for value in self.indptr[i: j]]
+            motifs = self.motifs[i: j]
+            motif_indices = self.midx[i: j]
+            seq_array = self.seqs[self.indptr[i]: self.indptr[j]]
+            subsamples.append(sequence_box(indptr, seq_array, motif_indices, motifs, self.k, self.n_bases))
+            i += subsample_size
+        return subsamples
+    
+    def check_remaining_frozen(self):
+        if len(np.where(self.frozen == 0)[0]) > 5:
+            return True
+        return False

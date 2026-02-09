@@ -17,7 +17,8 @@ from utils import utils
 from sequence_database import sequence_box
 from collections import Counter, defaultdict
 
-from scipy.special import softmax 
+from scipy.special import softmax
+from sklearn.preprocessing import normalize
 
 bases = ["A", "T", "C", "G", "N"]
 encode_map = utils.init_base_encoding_map()
@@ -25,7 +26,9 @@ import time
 
 
 
-def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythonic", p_method="softmax", rtol=1e-5, atol=1e-10, max_iter=1024, seed=None, toprint=True, temp=0.1):
+def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=100000,
+                     mode="norm", speed="pythonic", p_method="softmax", 
+                     rtol=1e-5, atol=1e-10, max_iter=1024, seed=None, toprint=True, temp=0.1):
     '''
     Function to find a pfm from a list of strings using a Gibbs sampler
     
@@ -58,6 +61,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
     -----------------------------------------------ITERATION LOOP---------------------------------------
     '''
     i = 0
+    converged = False
     if speed == "pythonic:":
 
         #SLICING SUBSET
@@ -69,8 +73,6 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
         #ALTERNATE METHOD
         mots = seq_box.get_str_list_format_motifs()
 
-        converged = False
-        #i = 0
         while converged == False and i < max_iter:
 
             mot_pick = np.random.randint(0, len(sample_list))
@@ -112,30 +114,37 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
             i += 1
             
     elif speed == "fast":
+        
         if toprint:
             pfm = seq_box.get_pfm()
             pprint(pfm)
         if toprint:
             print(f"beginning fast iteration")
-        converged = False
-        #i = 0
 
-        while converged == False and i < max_iter:
-            print(f"\rIteration {i}", end="", flush=True)
-            fwd_seq = seq_box.select_random_motif()
-            pfm = seq_box.get_pfm(to_mask=True)
-            pwm = motif_ops.build_pwm(pfm)
-            rev_seq = utils.fast_complement(fwd_seq)
-            fwd, rev = utils.fast_subdivide(fwd_seq, rev_seq, k)
-            best_motif = utils.choose_best(fwd, rev, pwm, p_method)
-            seq_box.update_motifs(best_motif)
+        j = 0
+        
+        while seq_box.check_remaining_frozen():
+            seq_box.unfreeze_random(subsample_size)
+            converged=False
+            i = 0
+            while converged == False and i < max_iter:
+                print(f"\rIteration {i}, subsample {j}", end="", flush=True)
+                fwd_seq = seq_box.select_random_sampling_motif()
+                pfm = seq_box.get_pfm(to_mask=True)
+                pwm = motif_ops.build_pwm(pfm)
+                rev_seq = utils.fast_complement(fwd_seq)
+                fwd, rev = utils.fast_subdivide(fwd_seq, rev_seq, k)
+                best_motif = utils.choose_best(fwd, rev, pwm, p_method)
+                seq_box.update_motifs(best_motif)
 
-            if i > 0:
-                if np.allclose(pwm, pwm_old, rtol, atol):
-                    converged = True
-            pwm_old = pwm.copy()
-            
-            i += 1
+                if i > 0:
+                    if np.allclose(pwm, pwm_old, rtol, atol):
+                        converged = False
+                pwm_old = pwm.copy()
+                
+                i += 1
+            seq_box.reset_sampling_pool()
+            j += 1
 
     output = seq_box.get_str_list_format_motifs()
 
@@ -148,6 +157,7 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, mode="norm", speed="pythoni
 
         print(f'\nAfter {i} iterations, final motif list: {output[:20]}')
     
+    pfm = normalize(pfm.T, norm="l1", axis=1)
     return pfm
 
     
@@ -171,6 +181,9 @@ def consensus(results, top_k=20):
     for result in results:
         votes.update(Counter(result))
     return votes.most_common(top_k)
+
+def aggregate_matrices(matrices):
+    return 
     
 
 # threads = 16
@@ -188,18 +201,16 @@ def consensus(results, top_k=20):
 # np.random.seed(42)
 
 # Making a fake PWM
-random_ppm = np.random.dirichlet(np.ones(4), size=6)
-print(random_ppm)
-ppm = seqlogo.Ppm(random_ppm)
+# random_ppm = np.random.dirichlet(np.ones(4), size=6)
+# print(random_ppm)
+# ppm = seqlogo.Ppm(random_ppm)
 
 
 
 from sklearn.preprocessing import normalize
 # Run the gibbs sampler:
-pfm = GibbsMotifFinder(k=6, speed="fast", max_iter=1000, toprint=True)
-print(pfm)
-pfm = normalize(pfm.T, norm="l1", axis=1)
-print(pfm)
+pfm = GibbsMotifFinder(k=10, speed="fast", max_iter=1000, toprint=True, rtol=1e-30, atol=1e-30, subsample_size=3000000)
+
 ppm = seqlogo.CompletePm(pfm = pfm)
 
 
