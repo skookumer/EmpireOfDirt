@@ -34,6 +34,17 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=1e10,
         seqs (str list): a list of sequences, not necessarily in same lengths
         k (int): the length of motif to find
         seed (int, default=None): seed for np.random
+        n_rows: the number of rows to read from the file. **keep this at 3083497** for this version
+        subsample_size: the size of the subsample for fast method **1e10 means no subsampling**
+        mode: Not meaningful in this version
+        speed: switch between pythonic and fast speed
+        p_method: softmax is the only option
+        rtol: relative tolerance for convergence
+        atol: absolute tolerance for convergence
+        max_iter: maximum number of iterations
+        seed: the random seed for the algorithm
+        toprint: (bool) print diagnostic statements
+        temp: (float) temperature for the softmax function
 
     Returns:
         pfm (numpy array): dimensions are 4xlength
