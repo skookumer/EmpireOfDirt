@@ -6,8 +6,6 @@ from utils import utils
 class sequence_box:
 
     '''
-    Docstring for sequence_box
-
     Class for sequence box class. This stores the genetic data in a flat array with a pointer array to index every sequence. 
     Stores other information (see params below)
 
