@@ -11,21 +11,26 @@ complement_map = np.array([3, 2, 1, 0, 4])
 
 class utils:
 
-    def io_monster(mode):
+    def io_monster(mode, filename="SRR9090854.subsampled_5pct.bam"):
+        '''
+        Docstring for io_monster
+        
+        :param mode: Specifies whether to load reads from file or to load and save as npz for fast retreival
+        '''
 
         def read_encode_bam():
             seqs = [read.seq for read in bs.AlignmentFile(bam_path)]
-            lengths = np.array([len(seq) for seq in seqs], dtype=np.int32)                                 #store the indices of the reads so we can retrieve them later
+            lengths = np.array([len(seq) for seq in seqs], dtype=np.int32)      #store the indices of the reads so we can retrieve them later
             all_bytes = np.frombuffer("".join(seqs).encode(), dtype=np.uint8)   #flatten the whole genome into a byte array (strings -> bytes)
             encode_map = utils.init_base_encoding_map()
-            seqs = utils.encode_sequences(all_bytes, encode_map)                 #use the fast numba function to encode the bytes as nucleotides (bytes -> encodings)
-            indptr = np.zeros(len(lengths) + 1, dtype=np.int32)             #build indptr (map of indices in flat array)
-            indptr[1:] = np.cumsum(lengths)                                 #get the fenceposts of all sequences in the flat array
+            seqs = utils.encode_sequences(all_bytes, encode_map)                #use the fast numba function to encode the bytes as nucleotides (bytes -> encodings)
+            indptr = np.zeros(len(lengths) + 1, dtype=np.int32)                 #build indptr (map of indices in flat array)
+            indptr[1:] = np.cumsum(lengths)                                     #get the fenceposts of all sequences in the flat array
             np.savez_compressed(npz_path, seqs=seqs, indptr=indptr)
 
 
         npz_name = "processed_data.npz"
-        bam_path = home / "data" / "SRR9090854.subsampled_5pct.bam"
+        bam_path = home / "data" / filename
         npz_path = home / "data" / npz_name
 
         if mode == "test":                                                  #use a test file if testmode specified
@@ -49,6 +54,11 @@ class utils:
         return seqs, None
     
     def init_base_encoding_map():
+        '''
+        Docstring for init_base_encoding_map
+
+        Returns mapping for binary/ASCII (not sure) encoded strings to numbers
+        '''
         base_map = np.zeros(256, dtype=np.int8)
         base_map[ord('A')] = 0
         base_map[ord('C')] = 1
@@ -58,13 +68,28 @@ class utils:
         return base_map
     
     def decode_sequence(seq):
+        '''
+        Docstring for decode_sequence
+        
+        :param seq: takes an encoded sequence and converts it back to a string with decode map
+        '''
         return "".join(decode_map[seq])
 
     
     def seq_to_array(seq, base_map):
+        '''
+        Docstring for seq_to_array
+        
+        :param seq: Description
+        :param base_map: Description
+        '''
         seq_array = np.frombuffer(seq.encode(), dtype=np.int8)
         indices = base_map[seq_array]
         return indices
+    
+    '''
+    The rest are numba functions for fast iterating through numpy arrays
+    '''
     
     @njit
     def encode_sequences(all_bytes, base_map):
@@ -95,11 +120,23 @@ class utils:
         return pfm
     
     @njit
-    def fast_complement(seq):
+    def subtract_pfm(motif, k, pfm):            #simple update the pfm
+            for j in range(k):
+                pfm[motif[j], j] -= 1
+            return pfm
+    
+    @njit
+    def add_pfm(motif, k, pfm):            #simple update the pfm
+        for j in range(k):
+            pfm[motif[j], j] += 1
+        return pfm
+    
+    @njit
+    def fast_complement(seq):               #reverse sequences
         return complement_map[seq[::-1]]
     
     @njit
-    def fast_subdivide(seq, rev_seq, k):
+    def fast_subdivide(seq, rev_seq, k):                            #splits the fwd and rev sequences into all possible motifs
         motif_indices = len(seq) - k
         fwd_motifs = np.zeros((motif_indices, k), dtype=np.int8)
         rev_motifs = np.zeros((motif_indices, k), dtype=np.int8)
@@ -109,7 +146,7 @@ class utils:
         return fwd_motifs, rev_motifs
 
     @njit
-    def fast_score(motif_array, pwm):
+    def fast_score(motif_array, pwm):                                   #takes the scoring pwm and basically does what marcus's does
         scores = np.zeros(len(motif_array), dtype=np.float64)
         for i in range(len(motif_array)):
             motif = motif_array[i]
@@ -119,11 +156,11 @@ class utils:
             scores[i] = score
         return scores
 
-    def choose_best(fwd, rev, pwm, p_method, temp=0.1):
-        methods = {"softmax": lambda x: softmax(x / temp)}
+    def choose_best(fwd, rev, pwm, p_method, temp=0.1):                 #scoring function that can take a variety of probability methods
+        methods = {"softmax": lambda x: softmax(x / temp)}              #we chose softmax because this is common in ML and LLMs
         fwd_score = utils.fast_score(fwd, pwm)
         rev_score = utils.fast_score(rev, pwm)
-        score_dist = np.concatenate([fwd_score, rev_score], axis=0)
+        score_dist = np.concatenate([fwd_score, rev_score], axis=0)     #iffy choice to concatenate both scores into one distribution
         if p_method not in methods:
             raise ValueError("improper probability method")
         p_dist = methods[p_method](score_dist)

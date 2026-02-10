@@ -22,7 +22,6 @@ from sklearn.preprocessing import normalize
 
 bases = ["A", "T", "C", "G", "N"]
 encode_map = utils.init_base_encoding_map()
-import time
 
 
 
@@ -47,22 +46,33 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=100000,
 
     # Use rng to make random samples/selections/numbers
     # Example: randint = rng.integer(1, 10)
-    random.seed(seed)
-    rng = np.random.default_rng(seed)
+    # random.seed(seed)
+    # rng = np.random.default_rng(seed)
+
+    '''
+    INITIALIZATION FUNCTIONS HERE:
+    - load the flat sequence and indptr (indices)
+    - initialize the random motifs and their corresponding indicies using a fast function
+    - store all this in the sequence box object for future use
+    - compute background frequencies (not in this version)
+    '''
 
     seqs, indptr = utils.io_monster(mode)
     motifs, midx = utils.fast_init(seqs, n_rows, indptr, k)
     seq_box = sequence_box(indptr, seqs, midx, motifs, k)
-
     # bg = seq_box.get_bg()
 
 
     '''
     -----------------------------------------------ITERATION LOOP---------------------------------------
+  
+    Two speeds to pick from:
+    - pythonic mode (understandable)
+    - fast mode (uses object methods and numba functions for speed)
     '''
     i = 0
     converged = False
-    if speed == "pythonic:":
+    if speed == "pythonic":
 
         #SLICING SUBSET
         mots = seq_box.motifs[:100]
@@ -71,13 +81,13 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=100000,
             sample_list.append(utils.decode_sequence(mots[j]))
 
         #ALTERNATE METHOD
-        mots = seq_box.get_str_list_format_motifs()
+        # mots = seq_box.get_str_list_format_motifs()
 
         while converged == False and i < max_iter:
 
             mot_pick = np.random.randint(0, len(sample_list))
             sample_list.pop(mot_pick)
-            pfm = motif_ops.build_pfm(sample_list, k)
+            pfm = motif_ops.build_pfm(sample_list, k)               #Rebuilds the whole pfm each time
             pwm = motif_ops.build_pwm(pfm)
 
             seq = utils.decode_sequence(seq_box[mot_pick])
@@ -125,22 +135,24 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=100000,
         
         while seq_box.check_remaining_frozen():
             seq_box.unfreeze_random(subsample_size)
+            pfm = seq_box.get_pfm(to_mask=True)                     #only build the pfm once
             converged=False
             i = 0
             while converged == False and i < max_iter:
                 print(f"\rIteration {i}, subsample {j}", end="", flush=True)
-                fwd_seq = seq_box.select_random_sampling_motif()
-                pfm = seq_box.get_pfm(to_mask=True)
+                fwd_seq, selected_motif = seq_box.select_random_sampling_motif()
+                pfm = utils.subtract_pfm(selected_motif, k, pfm)        #just update the pfm by subtracting the current motif
                 pwm = motif_ops.build_pwm(pfm)
                 rev_seq = utils.fast_complement(fwd_seq)
                 fwd, rev = utils.fast_subdivide(fwd_seq, rev_seq, k)
                 best_motif = utils.choose_best(fwd, rev, pwm, p_method)
+                pfm = utils.add_pfm(best_motif, k, pfm)                 #and re-add back in the motif
                 seq_box.update_motifs(best_motif)
 
                 if i > 0:
                     if np.allclose(pwm, pwm_old, rtol, atol):
                         converged = False
-                pwm_old = pwm.copy()
+                pwm_old = pwm.copy()    
                 
                 i += 1
             seq_box.reset_sampling_pool()
@@ -157,48 +169,25 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=100000,
 
         print(f'\nAfter {i} iterations, final motif list: {output[:20]}')
     
-    pfm = normalize(pfm.T, norm="l1", axis=1)
-    return pfm
-
-    
-        
-
+    pfm = normalize(pfm.T, norm="l1", axis=1)                       #included this here to avoid normalizing and transposing outside the function
+    return pfm                                                      #output is ready for seqlogo
 
     
 
-    #pprint(pfm)
-    #pprint(pwm)
-    #pprint(seq)
-    #pprint(rev_seq)
-    #pprint(scores)
-    
 
-    #pprint(sample_list)
-
-
-def consensus(results, top_k=20):
+def consensus(results, top_k=20):                   #outdated consensus function
     votes = Counter()
     for result in results:
         votes.update(Counter(result))
     return votes.most_common(top_k)
 
-def aggregate_matrices(matrices):
-    return 
-    
-
-# threads = 16
-
-# results = Parallel(n_jobs=threads)([delayed(GibbsMotifFinder)(k=6, speed="fast", rtol=1e-5, max_iter=6000) for _ in range(threads)])
-
-# top_k = consensus(results)
-# print(top_k)
+def run_parallel(n_runs = 32, **params):            #option to run the algorithm in parallel and aggregate results
+    results = Parallel(n_jobs=-1)([delayed(GibbsMotifFinder)(**params) for _ in range(n_runs)])
+    return np.sum(results, axis=1)
 
 
 
 
-# GibbsMotifFinder(k=6, speed="fast", rtol=1e-5, max_iter=6000)
-
-# np.random.seed(42)
 
 # Making a fake PWM
 # random_ppm = np.random.dirichlet(np.ones(4), size=6)
@@ -207,11 +196,9 @@ def aggregate_matrices(matrices):
 
 if __name__=="__main__":
     # Run the gibbs sampler:
-    pfm = GibbsMotifFinder(k=10, speed="fast", max_iter=1000, toprint=True, rtol=1e-30, atol=1e-30, subsample_size=3000000)
+    pfm = GibbsMotifFinder(k=6, speed="fast", max_iter=6e6, toprint=True, rtol=1e-5, atol=1e-10, subsample_size=1e10)
 
     ppm = seqlogo.CompletePm(pfm = pfm)
-
-
     # Plot the final pfm that is generated: 
     seqlogo.seqlogo(ppm, ic_scale=False, format="png", size="large", filename="test.png")
 
