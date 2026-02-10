@@ -55,8 +55,6 @@ class utils:
     
     def init_base_encoding_map():
         '''
-        Docstring for init_base_encoding_map
-
         Returns mapping for binary/ASCII (not sure) encoded strings to numbers
         '''
         base_map = np.zeros(256, dtype=np.int8)
@@ -68,20 +66,16 @@ class utils:
         return base_map
     
     def decode_sequence(seq):
-        '''
-        Docstring for decode_sequence
-        
+        '''        
         :param seq: takes an encoded sequence and converts it back to a string with decode map
         '''
         return "".join(decode_map[seq])
 
     
     def seq_to_array(seq, base_map):
-        '''
-        Docstring for seq_to_array
-        
-        :param seq: Description
-        :param base_map: Description
+        '''        
+        :param seq: converts a string sequence to an encoded array
+        :param base_map: the encoding map initialized with the encoding map method
         '''
         seq_array = np.frombuffer(seq.encode(), dtype=np.int8)
         indices = base_map[seq_array]
@@ -167,20 +161,6 @@ class utils:
         all_motifs = np.concatenate([fwd, rev], axis=0)
         idx =  np.random.choice(len(all_motifs), p=p_dist)
         return all_motifs[idx]
-
-
-            
-
-    
-
-
-
-
-# x = ["GATTACA"]
-# x = np.frombuffer("".join(x).encode(), dtype=np.uint8)
-# xx = utils.encode_sequences(x, utils.init_base_encoding_map())
-# yy = utils.fast_complement(xx)
-# print(utils.decode_sequence(yy))
 
 
 
