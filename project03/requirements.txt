@@ -1,0 +1,5 @@
+seqlogo==5.29.11
+scipy==1.13.1
+scikit-learn==1.6.1
+bamnostic==1.3
+joblib==1.4.2
