@@ -49,7 +49,7 @@ There are many elements of this project that remain to be explored and could be 
 - Termination condition. We used a threshold for the difference in the PWMs between iterations, but the threshold for this is non-normalized and would change with the length of k-mer used. I noticed at the last minute that motif_ops.ic_content was the required function, so this could be implemented in the revision.
 - Aggregation of the parallel output -- to choose the best matrix or to sum them
 
-Overall, this was an exciting project and opened up my thinking about unupervised tokenization learning strategies. The application of the MCMC method makes me wonder about the fundamental differences between genomic grammar and natural language.
+Overall, this was an exciting project and opened up my thinking about unupervised tokenization learning strategies. The application of the MCMC method makes me wonder about the fundamental differences between genomic grammar and natural language. This was my second time really using njit in a pipeline so it was a learning experience.
 
 ## Meghana Ravi
 Other members' reflections on the project
