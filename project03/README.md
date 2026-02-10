@@ -1,5 +1,6 @@
 # Introduction
 This program utilizes a Markov Model algorithm to attempt to identify a possible binding site in a *.bam file of ChIPseq sequences. In the version we have created here, we are analyzing a subset of 3 million ChIPseq reads from the archive entry SRR9090854, but the program can be changed to analyze other *.bam (if *.bam.bai file is also provided) if desired.
+
 The Gibbs Motif Finder is designed to find statistically significant nucleotide sequences of length-k in a genome that has been read-separated. Our program implements this algorithm using two strategies, a "pythonic" one that should be understandable to the class and a "fast" version that is suited to the scope of the problem (3 million reads). We find that a ratio of above 1:1 iterations per read is necessary for finding distinct motifs, hence defaulting to the "fast" option.
 
 This program uses several files:
@@ -33,18 +34,7 @@ function GibbsMotifFinder(DNA, k-length)
 Our group met many times to discuss possible implementations and decide on a general algorithm for the program to follow. We made sure all group members understood the intended flow of the program. We also did peer programming which helped everyone participate in the inception of the key parts of the data processing. Eric provided a lot of code that read the *.bam file quickly and used encoded sequences to speed up processing of the sequences. This allowed us to get data faster than requiring many minutes of initialization and saved iteration time. Because of this, we spent less time waiting for the program to run while troubleshooting.
 
 # Struggles
-Because our program was so fast, our initial approach was to read in the whole file and process it each time, instead of subsetting it. We realized that we were not getting a lot of information this way due to the sheer number of our initial motif scores, and that we should instead run our program many times on many randomized subsets.
-
-# Personal Reflections
-## Eric Arnold
-Group leader's reflection on the project
-- Implementation of Gibbs Sampling methods.
-- more experience with numpy
-- 
-
-# Struggles
-- What is the rule of thumb for the number of iterations for a dataset of this size? 10,000 seems way too few.
-- 
+Because our program was so fast, our initial approach was to read in the whole file and process it each time, instead of subsetting it. We realized that we were not getting a lot of information this way due to the sheer number of our initial motif scores, and that we should instead run our program many times on many randomized subsets. 
 
 # Personal Reflections
 ## Group Leader
@@ -69,5 +59,51 @@ This was the most challenging project yet, but definitely conceptually intriguin
 
 # Generative AI Appendix
 A lot of prompts for debugging and inquiring about numpy arrays and functions. Here are couple of highlights:
+
+Gemini-3
+
+Prompt:
+```python
+
+    def initialize_motif(seq, k):                       #random pick of k-length sequences for each line of DNA as Motifs
+        idx = random.randint(0, len(seq) - k)
+        seq = utils.seq_to_array(seq)
+        motif = seq[seq[idx:idx+k]]                                 #get the motif
+        background = np.concatenate([seq[:idx], seq[idx + k:]])     #get the background
+        output = {"k-mer": motif, "idx": idx, "bg": background}
+        return output
+
+ok, here's the code that gets everything
+```
+pointed out the indexing issue going on with motif
+
+prompt: I just want to replace that one list comp with an njit function, that's all
+
+prompt:
+```python
+    @njit
+    def convert_sequences(all_bytes):
+        mdata = np.empty(len(all_bytes))
+        for i in range(len(all_bytes)):
+            mdata[i] = base_to_index[all_bytes[i]]
+```
+
+prompt: am i basically creating an indptr
+prompt: 
+```python
+        start = 0
+        for i in range(n_rows):
+            end = indptr[i]
+            seq = seqs[start:end]
+```
+ok, this is what I ahve
+prompt: no, indptr[i] is the length of the first sequence, so we should end at the first sequence
+
+Sonnet-4.5
+
+prompt: Does gibbs sampling have an upper limit for sequences
+prompt: I'm finding that my algorithm isn't converging and is essentially staying at baseline
+prompt: I'm using softmax to convert scores to probabilities and am and also scoring reverse sequences
+
 
 
