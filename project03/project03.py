@@ -95,41 +95,50 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=1e10,
 
         while converged == False and i < max_iter:
 
+            # choose one sequence from our sample list, remove and calculate pwm from remaining sequences
             mot_pick = np.random.randint(0, len(sample_list))
             sample_list.pop(mot_pick)
             pfm = motif_ops.build_pfm(sample_list, k)               #encodes and rebuilds the whole pfm each time
             pwm = motif_ops.build_pwm(pfm)
 
+            # decode chosen sequence and get reverse complement
             seq = utils.decode_sequence(seq_box[mot_pick])
             rev_seq = seq_ops.reverse_complement(seq)
 
+            # score each k-mer in forward sequence
             scores = []
             for x in range(len(seq) - k):
                 score = motif_ops.score_kmer(seq[x:x+k], pwm)
                 scores.append(score)
-            
+
+            # score each k-mer in reverse sequence
             for x in range(len(seq) - k):
                 score = motif_ops.score_kmer(rev_seq[x:x+k], pwm)
                 scores.append(score / temp)
-            
+
+            # choose "best" motif score using softmax calculation
             prob = softmax(scores)
             #print(prob)
             idx = np.random.choice(np.arange(len(scores)), p=prob)
 
+            # use modulo to determine if chosen motif is on forward or reverse sequence
             quotient, remainder = divmod(idx, len(seq) - k - 1)
-            if quotient == 0:
+            if quotient == 0: # forward sequence
                 new_motif = seq[remainder:remainder+k]
-            else:
+            else: # reverse sequence
                 new_motif = rev_seq[remainder:remainder+k]
 
+            # put the sequence we just scored back into the sample list
             seq_box.midx[mot_pick] = remainder
             sample_list.insert(mot_pick, new_motif)
 
+            # check for convergence
             if i > 0:
                 if np.allclose(pwm, pwm_old, ):
                     converged = True
                     pprint(pwm-pwm_old)
 
+            # save pwm for next iteration
             pwm_old = pwm.copy()
             i += 1
             
