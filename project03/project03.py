@@ -17,7 +17,6 @@ from scipy.special import softmax
 from sklearn.preprocessing import normalize
 
 bases = ["A", "T", "C", "G", "N"]
-encode_map = utils.init_base_encoding_map()
 
 
 def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=1e10,
