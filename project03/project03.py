@@ -11,9 +11,6 @@ import seq_ops
 import motif_ops
 
 from joblib import Parallel, delayed
-
-from utils import utils
-from sequence_database import sequence_box
 from collections import Counter, defaultdict
 
 from scipy.special import softmax
@@ -50,36 +47,11 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=1e10,
         pfm (numpy array): dimensions are 4xlength
     '''
 
-    '''
-    -----------------------------------------------INITIALIZATION---------------------------------------
-    '''
-
     # Use rng to make random samples/selections/numbers
     # Example: randint = rng.integer(1, 10)
     random.seed(seed)
     rng = np.random.default_rng(seed)
 
-    '''
-    INITIALIZATION FUNCTIONS HERE:
-    - load the flat sequence and indptr (indices)
-    - initialize the random motifs and their corresponding indicies using a fast function
-    - store all this in the sequence box object for future use
-    - compute background frequencies (not in this version)
-    '''
-
-    seqs, indptr = utils.io_monster(mode)
-    motifs, midx = utils.fast_init(seqs, n_rows, indptr, k)
-    seq_box = sequence_box(indptr, seqs, midx, motifs, k)
-    # bg = seq_box.get_bg()
-
-
-    '''
-    -----------------------------------------------ITERATION LOOP---------------------------------------
-  
-    Two speeds to pick from:
-    - pythonic mode (understandable)
-    - fast mode (uses object methods and numba functions for speed)
-    '''
     i = 0
     converged = False
     if speed == "pythonic":
@@ -141,41 +113,6 @@ def GibbsMotifFinder(seqs=None, k=6, n_rows=3083497, subsample_size=1e10,
             # save pwm for next iteration
             pwm_old = pwm.copy()
             i += 1
-            
-    elif speed == "fast":
-        
-        if toprint:
-            pfm = seq_box.get_pfm()
-            pprint(pfm)
-        if toprint:
-            print(f"beginning fast iteration")
-
-        j = 0
-        
-        while seq_box.check_remaining_frozen():                     #checks if all sequences have been sampled
-            seq_box.unfreeze_random(subsample_size)                 #unfreezes the next random subsample for sampling and adds them to the pfm calculation
-            pfm = seq_box.get_pfm(to_mask=True)                     #only build the pfm once
-            converged=False
-            i = 0
-            while converged == False and i < max_iter:
-                print(f"\rIteration {i}, subsample {j}", end="", flush=True)
-                fwd_seq, selected_motif = seq_box.select_random_sampling_motif()    #select both motif and the sequence associated with it, store the index in the seq_box object
-                pfm = utils.subtract_pfm(selected_motif, k, pfm)                    #just update the pfm by subtracting the current motif
-                pwm = motif_ops.build_pwm(pfm)                                      #standard build_pwm function
-                rev_seq = utils.fast_complement(fwd_seq)                            #get the reverse sequence
-                fwd, rev = utils.fast_subdivide(fwd_seq, rev_seq, k)                #get all possible motifs in both sequences
-                best_motif = utils.choose_best(fwd, rev, pwm, p_method)             #choose the best motif in either sequence
-                pfm = utils.add_pfm(best_motif, k, pfm)                             #and re-add motif nucleotides to the pfm
-                seq_box.update_motifs(best_motif)                                   #method update the seq_box object (as opposed to direct assignment)
-
-                if i > 0:                                                           #check convergence
-                    if np.allclose(pwm, pwm_old, rtol, atol):
-                        converged = False
-                pwm_old = pwm.copy()                                                #use .copy() to ensure no pointing in memory
-                
-                i += 1
-            seq_box.reset_sampling_pool()                                           #set the indices available for sampling back to False, but keep the unfrozen indices for the pfm calculation
-            j += 1
 
     if toprint:
         output = seq_box.get_str_list_format_motifs()                       #convert the encoded sequences to strings for printability
