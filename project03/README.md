@@ -9,6 +9,11 @@ This program uses several files:
 - utils.py, a class of static methods that use numba for the fast method
 - sequence_database.py, a python object for storing the flat array of the genome for fast iteration.
 
+Version 2 contains the following files:
+- project03_v2.ipynb, a notebook which contains the main program and cells to visualize results
+- seq_tools.py, new functions made to support project03_v2.ipynb
+- motif_ops.py, one change was made to this file to support project03_v2.ipynb
+
 The algorithm behaves as expected, though the convergence condition needs refinement as it does not use entropy and instead reilies on a fixed threshold for the difference in matrices.
 
 
@@ -32,9 +37,11 @@ function GibbsMotifFinder(DNA, k-length)
 
 # Successes
 Our group met many times to discuss possible implementations and decide on a general algorithm for the program to follow. We made sure all group members understood the intended flow of the program. We also did peer programming which helped everyone participate in the inception of the key parts of the data processing. Eric provided a lot of code that read the *.bam file quickly and used encoded sequences to speed up processing of the sequences. This allowed us to get data faster than requiring many minutes of initialization and saved iteration time. Because of this, we spent less time waiting for the program to run while troubleshooting.
+During the second week we remade the program to work in more simple code that was easy to follow and run. This allowed all group members to easily understand the algorithm and participate in bug fixing and suggesting improvements.
 
 # Struggles
 Because our program was so fast, our initial approach was to read in the whole file and process it each time, instead of subsetting it. We realized that we were not getting a lot of information this way due to the sheer number of our initial motif scores, and that we should instead run our program many times on many randomized subsets. 
+During the second week we really struggled with getting MACS3 working which limited the amount of time we had to spend on the second version of our program.
 
 # Personal Reflections
 ## Group Leader
@@ -55,7 +62,8 @@ Overall, this was an exciting project and opened up my thinking about unupervise
 This project was definitely the one I struggled most with so far. I struggled with understanding the details of the concept in the beginning and how to apply them when writing code. My team was really supportive, Eric and Victoria helped me understand details I was confused about and I learned a lot of new things about coding throughout the process thanks to them. As we discussed and implemented the concepts I definitely started understanding better and I found it to be a very challenging but rewarding process.
 
 ## Victoria Van Berlo
-This was the most challenging project yet, but definitely conceptually intriguing because it was in the realm of bioinformatics and the possible result of our program was unknown at conception. The number of functions and the extra code supplied by Eric made it a blessing and a curse, where the code ran quickly, but it was difficult to keep track of all the functions. Our group met many times which helped everyone stay on track and troubleshoot problems and redirect program flow as needed.
+This was the most challenging project yet, but definitely conceptually intriguing because it was in the realm of bioinformatics and the possible result of our program was unknown at conception. The number of functions and the extra code supplied by Eric made it a blessing and a curse, where the code ran quickly, but it was difficult to keep track of all the functions. Our group met many times which helped everyone stay on track and troubleshoot problems and redirect program flow as needed. 
+After having the second week to solve the input problem, I spent the extra time really trying to understand the algorithm and we came up with a new working program from start to finish where I really feel like I understand now. 
 
 # Generative AI Appendix
 A lot of prompts for debugging and inquiring about numpy arrays and functions. Here are couple of highlights:
