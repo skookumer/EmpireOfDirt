@@ -71,7 +71,7 @@ def score_kmer(seq: str, pwm: np.ndarray) -> float:
         raise ValueError('K-mer and PWM are different lengths!')
 
     indices = np.fromiter((int(nt) for nt in seq.translate(TRANS_TAB)), dtype = int)
-    return np.sum(pwm[indices, np.arange(len(indices))])
+    return float(np.sum(pwm[indices, np.arange(len(indices))]))
 
 
 def pfm_ic(pfm: np.ndarray) -> float:
