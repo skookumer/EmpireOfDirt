@@ -1,3 +1,8 @@
+### Description
+
+
+### Pseudocode
+
 ```python
 10,000 Fragments
 remove the redundant ones
@@ -12,3 +17,16 @@ iterate through the fragments
         some condition?
 
 ```
+
+### Successes
+
+### Struggles
+
+### Reflections
+
+## Group lead (Eric Arnold):
+
+## Group members (Jersha, Chantera):
+
+### Generative AI appendix:
+
