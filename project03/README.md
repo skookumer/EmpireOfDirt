@@ -3,19 +3,12 @@ This program utilizes a Markov Model algorithm to attempt to identify a possible
 
 The Gibbs Motif Finder is designed to find statistically significant nucleotide sequences of length-k in a genome that has been read-separated. Our program implements this algorithm using two strategies, a "pythonic" one that should be understandable to the class and a "fast" version that is suited to the scope of the problem (3 million reads). We find that a ratio of above 1:1 iterations per read is necessary for finding distinct motifs, hence defaulting to the "fast" option.
 
-This program uses several files:
-- project03.ipynb, a notebook demonstrating functionality at a high level
-- project03.py, the main script where the Gibbs function lives
-- utils.py, a class of static methods that use numba for the fast method
-- sequence_database.py, a python object for storing the flat array of the genome for fast iteration.
-
 Version 2 contains the following files:
 - project03_v2.ipynb, a notebook which contains the main program and cells to visualize results
 - seq_tools.py, new functions made to support project03_v2.ipynb
 - motif_ops.py, one change was made to this file to support project03_v2.ipynb
 
 The algorithm behaves as expected, though the convergence condition needs refinement as it does not use entropy and instead reilies on a fixed threshold for the difference in matrices.
-
 
 # Pseudocode
 
@@ -46,18 +39,7 @@ One difficulty we ran into was trying to improve our convergence citerion by req
 
 # Personal Reflections
 ## Group Leader
-Eric: I decided to develop the "fast" pipeline as well in addition to the vanilla pythonic one we all worked on. I did this because I knew that we would not be able to get through iterations on 3 million rows of data in a reasonable amount of time (1 iteration of our pythonic loop took 36s). 6-million iterations with the fast method took roughly 7 hours. We tried to keep the versions somewhat consistient as far as the results are concerned and incorporated tests to ensure that the output was equal.
-
-There are many elements of this project that remain to be explored and could be revised. Chiefly:
-- The initialization state and whether to include reverse complements in these motifs; we could try this
-- The use of background frequencies for score calcluation
-- The specifics of how score distributions for the fwd and reverse motifs are combined and used in the selection function
-- The conversion of the score logits into probabilities (we used softmax with a temperature of .1).
-- Subsampling and different subsampling strategies. I explored an iterative method of freezing/unfrezzing rows and gradually adding to the PFM calculation that might bias the algorithm towards a certain region of the search space, but might enable faster convergence.
-- Termination condition. We used a threshold for the difference in the PWMs between iterations, but the threshold for this is non-normalized and would change with the length of k-mer used. I noticed at the last minute that motif_ops.ic_content was the required function, so this could be implemented in the revision.
-- Aggregation of the parallel output -- to choose the best matrix or to sum them
-
-Overall, this was an exciting project and opened up my thinking about unupervised tokenization learning strategies. The application of the MCMC method makes me wonder about the fundamental differences between genomic grammar and natural language. This was my second time really using njit in a pipeline so it was a learning experience.
+Eric: This was a fun project that tested our abilities. We met numerous times over the last two weeks to discuss the implementation and to refine our approach. The collaborative coding sessions were important to keeping everyone on the same page. Numerous questions remain to be explored about the convergence of the algorithm and the interpretation of the results. One question I have is how the reads should contribute to the input of the file. It seems like we should treat each read like a uniform kernel in a density estimation, but I'm still not clear on how these should be treated after the peaks are handled by MACS3. I expect MACS3 to be doing this under the hood, but the function we used jsut returns flat sequences, which might trnansform the results in an undesired manner. So there is still work to be done as far as understanding exactly how the algorithm should be implemented.
 
 ## Meghana Ravi
 This project was definitely the one I struggled most with so far. I struggled with understanding the details of the concept in the beginning and how to apply them when writing code. My team was really supportive, Eric and Victoria helped me understand details I was confused about and I learned a lot of new things about coding throughout the process thanks to them. As we discussed and implemented the concepts I definitely started understanding better and I found it to be a very challenging but rewarding process. The extra week to work on this project gave me more time to understand the algorithm and how it works, but I also struggled a little with the dataset and trying to filter it. I think ultimately though, these two weeks have helped me really understand the concept and working of the algorithm.
