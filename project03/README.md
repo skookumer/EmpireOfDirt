@@ -42,6 +42,7 @@ During the second week we remade the program to work in more simple code that wa
 # Struggles
 Because our program was so fast, our initial approach was to read in the whole file and process it each time, instead of subsetting it. We realized that we were not getting a lot of information this way due to the sheer number of our initial motif scores, and that we should instead run our program many times on many randomized subsets. 
 During the second week we really struggled with getting MACS3 working which limited the amount of time we had to spend on the second version of our program.
+One difficulty we ran into was trying to improve our convergence citerion by requiring the IC difference to remain below a certain threshold for five consecutive iterations. We expected this to capture stabilization better. However, this approach did not work as expected and produced fluctuating IC values as iterations progressed.  
 
 # Personal Reflections
 ## Group Leader
@@ -59,7 +60,7 @@ There are many elements of this project that remain to be explored and could be 
 Overall, this was an exciting project and opened up my thinking about unupervised tokenization learning strategies. The application of the MCMC method makes me wonder about the fundamental differences between genomic grammar and natural language. This was my second time really using njit in a pipeline so it was a learning experience.
 
 ## Meghana Ravi
-This project was definitely the one I struggled most with so far. I struggled with understanding the details of the concept in the beginning and how to apply them when writing code. My team was really supportive, Eric and Victoria helped me understand details I was confused about and I learned a lot of new things about coding throughout the process thanks to them. As we discussed and implemented the concepts I definitely started understanding better and I found it to be a very challenging but rewarding process.
+This project was definitely the one I struggled most with so far. I struggled with understanding the details of the concept in the beginning and how to apply them when writing code. My team was really supportive, Eric and Victoria helped me understand details I was confused about and I learned a lot of new things about coding throughout the process thanks to them. As we discussed and implemented the concepts I definitely started understanding better and I found it to be a very challenging but rewarding process. The extra week to work on this project gave me more time to understand the algorithm and how it works, but I also struggled a little with the dataset and trying to filter it. I think ultimately though, these two weeks have helped me really understand the concept and working of the algorithm.
 
 ## Victoria Van Berlo
 This was the most challenging project yet, but definitely conceptually intriguing because it was in the realm of bioinformatics and the possible result of our program was unknown at conception. The number of functions and the extra code supplied by Eric made it a blessing and a curse, where the code ran quickly, but it was difficult to keep track of all the functions. Our group met many times which helped everyone stay on track and troubleshoot problems and redirect program flow as needed. 
