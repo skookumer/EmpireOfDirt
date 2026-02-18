@@ -161,19 +161,8 @@ def assemble_mouse_genome(
             - stats: Assembly statistics dictionary
             - timing: Performance timing information
     """
-    print("="*80)
-    print("MOUSE GENOME ASSEMBLY PIPELINE")
-    print("="*80)
-    print(f"Start time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print()
     
     timing = {}
-    
-    print("STEP 1: Loading sequencing reads")
-    print("-"*80)
-    print(f"Input file: {input_file}")
-    print(f"Expected: 10 million reads, 150bp each")
-    print()
     
     start_time = time.time()
     reads = read_fastq(input_file)
@@ -182,23 +171,6 @@ def assemble_mouse_genome(
     num_reads = len(reads)
     total_bases = sum(len(read) for read in reads)
     avg_read_length = total_bases / num_reads if num_reads > 0 else 0
-    
-    print(f"Reads loaded: {num_reads:,}")
-    print(f"Total bases: {total_bases:,} bp")
-    print(f"Average read length: {avg_read_length:.1f} bp")
-    print(f"Time elapsed: {timing['read_time']:.2f} seconds")
-    
-    if num_reads > 0:
-        print(f"\nSample reads:")
-        print(f"  First: {reads[0][:80]}...")
-        print(f"  Last:  {reads[-1][:80]}...")
-    print()
-    
-    print("STEP 2: Building De Bruijn graph")
-    print("-"*80)
-    print(f"K-mer size: {k_mer_size}")
-    print(f"Building graph from {num_reads:,} reads...")
-    print()
     
     start_time = time.time()
     dbg = DeBruijnGraph(reads, k=k_mer_size)
@@ -209,68 +181,22 @@ def assemble_mouse_genome(
     num_edges = sum(len(neighbors) for neighbors in dbg.graph.values())
     avg_degree = num_edges / num_nodes if num_nodes > 0 else 0
     
-    print(f"Graph construction complete!")
-    print(f"  Nodes (unique {k_mer_size-1}-mers): {num_nodes:,}")
-    print(f"  Edges (k-mer transitions): {num_edges:,}")
-    print(f"  Average out-degree: {avg_degree:.2f}")
-    print(f"Time elapsed: {timing['graph_time']:.2f} seconds")
-    print()
-    
-    print("STEP 3: Assembling contigs")
-    print("-"*80)
-    print(f"Finding connected components and traversing graph...")
-    print(f"Random seed: {random_seed} (for reproducibility)")
-    print()
-    
     start_time = time.time()
     contigs = dbg.assemble_contigs(seed=random_seed)
     timing['assembly_time'] = time.time() - start_time
     
-    print(f"Assembly complete!")
-    print(f"  Contigs generated: {len(contigs):,}")
-    print(f"Time elapsed: {timing['assembly_time']:.2f} seconds")
-    print()
-    
-    print("STEP 4: Calculating assembly statistics")
-    print("-"*80)
-    
     stats = dbg.get_assembly_stats(contigs)
-    
-    print(f"Assembly Statistics:")
-    print(f"  Number of contigs:     {stats['num_contigs']:,}")
-    print(f"  Total assembly length: {stats['total_length']:,} bp")
-    print(f"  Longest contig:        {stats['longest_contig']:,} bp")
-    print(f"  Shortest contig:       {stats['shortest_contig']:,} bp")
-    print(f"  Mean contig length:    {stats['mean_length']:,.1f} bp")
-    print(f"  N50:                   {stats['n50']:,} bp")
-    print()
     
     # Display distribution of contig lengths
     contig_lengths = sorted([len(c) for c in contigs], reverse=True)
-    
-    print(f"Contig Length Distribution:")
-    print(f"  Top 10 longest contigs:")
-    for i, length in enumerate(contig_lengths[:10], 1):
-        print(f"    {i:2d}. {length:,} bp")
-    print()
     
     # Calculate coverage estimate
     genome_size_estimate = 2700000000  # Mouse genome ~2.7 Gbp
     coverage_estimate = (num_reads * avg_read_length) / genome_size_estimate
     assembly_fraction = (stats['total_length'] / genome_size_estimate) * 100
     
-    print(f"Genome Coverage Analysis:")
-    print(f"  Mouse genome size (expected): ~{genome_size_estimate:,} bp")
-    print(f"  Estimated sequencing coverage: {coverage_estimate:.1f}x")
-    print(f"  Assembly size vs. genome: {assembly_fraction:.1f}%")
-    print()
-    
-    print("STEP 5: Writing output files")
-    print("-"*80)
-    
     # Write assembled contigs to FASTA
     dbg.write_fasta(contigs, output_fasta)
-    print(f"✓ Contigs written to: {output_fasta}")
     
     # Write detailed statistics
     write_statistics_file(
@@ -288,27 +214,9 @@ def assemble_mouse_genome(
         coverage_estimate,
         assembly_fraction
     )
-    print(f"✓ Statistics written to: {stats_file}")
-    print()
-    
+
     timing['total_time'] = (timing['read_time'] + timing['graph_time'] + 
                            timing['assembly_time'])
-    
-    print("="*80)
-    print("ASSEMBLY COMPLETE")
-    print("="*80)
-    print(f"Total time: {timing['total_time']:.2f} seconds "
-          f"({timing['total_time']/60:.2f} minutes)")
-    print(f"End time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-    print()
-    
-    print(f"Summary:")
-    print(f"  • Processed {num_reads:,} reads ({total_bases:,} bp)")
-    print(f"  • Built graph with {num_nodes:,} nodes and {num_edges:,} edges")
-    print(f"  • Assembled {stats['num_contigs']:,} contigs")
-    print(f"  • Total assembly: {stats['total_length']:,} bp (N50: {stats['n50']:,} bp)")
-    print(f"  • Output files: {output_fasta}, {stats_file}")
-    print()
     
     return {
         'dbg': dbg,
