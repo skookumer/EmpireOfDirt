@@ -1,6 +1,7 @@
-
-
+```python
 10,000 Fragments
+remove the redundant ones
+
 CHoose first fragment
 Init k-mer size
 iterate through the fragments
@@ -9,3 +10,5 @@ iterate through the fragments
     compare the two graphs
     If no overlapping:
         some condition?
+
+```
