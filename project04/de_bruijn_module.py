@@ -94,7 +94,16 @@ class DeBruijnGraph:
             >>> "ATG" in dbg.graph
             True
         """
-        pass
+        for read in reads:
+            for i in range(len(read) - k + 2):
+                
+                if i > 0:
+                    prev_kmer = current_kmer
+                current_kmer = read[i:i+k-1]
+                
+                if i > 0:
+                    self.graph[current_kmer].append(prev_kmer)
+        print(self.graph)
 
     def eulerian_walk(self, node, graph, seed=None):
         """Perform recursive Eulerian walk on a graph component.
