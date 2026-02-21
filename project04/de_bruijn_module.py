@@ -149,7 +149,7 @@ class DeBruijnGraph:
         return x
 
         # Alternative Approach (Loop method)
-        #y = []
+        #y = [node]
         #while len(graph[node]) > 0:
         #    next_node = np.random.choice(graph[node])
         #    self.remove_edge(node, next_node)
@@ -175,7 +175,36 @@ class DeBruijnGraph:
             >>> all(isinstance(c, str) for c in contigs)
             True
         """
-        pass
+        # Starting Candidate -> Walk -> Sequence
+        # Starting Candidate -> Walk -> Sequence
+        # -> A list of Sequences that was derived from our graph
+        sequences = ["ATGGCGTACGTTACCATG", "ACCATGAATACCGGAATT", "ACGTTACCAT"]
+        contigs = []
+        k = 6
+        for seq in sequences:
+            for next_seq in sequences:
+                if seq == next_seq:
+                    continue
+                if seq[:k+1] == next_seq[0:k]:
+                    new_sequence = seq + next_seq[k:]
+                    contigs.append(new_sequence)
+
+        print(contigs)
+        return contigs
+        #Contig 1: S1 and Sq2 and S4
+        #Contig 2: S3 and S6 and S9
+        #Contig 3: S7 and S5 and S8
+
+        # Choose a starting node
+        # we get a path
+        # We turn in sequences
+        # ATGGCGTACGTTACCATG S1
+        # Choose another starting positino
+        # Get a path
+        # Turn in sequences
+        # Check for overlap
+        # GGCGTACGTTACCATGAA S2
+        # TGAAAAAAAAAAAAAAAA S3
 
 
     def tour_to_sequence(self, tour):
@@ -222,7 +251,37 @@ class DeBruijnGraph:
             >>> stats['num_contigs']
             3
         """
-        pass
+        stats = dict()
+        # Number contigs == length of contigs list
+        stats['num_contigs'] = len(contigs)
+
+        # Total Assembled seq length == total number of bp generated across contigs
+        bp_count = 0
+        for contig in contigs:
+            bp_count += len(contig)
+        stats['total_length'] = bp_count
+
+        # Length of longest contig
+        stats['longest_contig'] = max(len(contig) for contig in contigs)
+
+        # Length of shortest contig
+        stats['shortest_contig'] = min(len(contig) for contig in contigs)
+
+        # Mean contig length
+        stats['mean_length'] = sum(len(contig) for contig in contigs) / len(contigs)
+
+        # If you sort all contigs by size, the N50 is the length of the contig where the sum of lengths starting from the longest equals 50% of the total assembly size.
+        sorted_contigs = sorted(contigs, key=len, reverse=True)
+        bp_half = round(bp_count / 2, 0)
+        sum_length = 0
+        for contig in sorted_contigs:
+            sum_length += len(contig)
+            if sum_length >= bp_half:
+                break
+        stats['n50'] = sum_length
+
+        return stats
+
 
     def write_fasta(self, contigs, filename):
         """Write assembled contigs to a FASTA file.
@@ -236,7 +295,11 @@ class DeBruijnGraph:
             >>> dbg = DeBruijnGraph([], k=4)
             >>> dbg.write_fasta(contigs, "output.fasta")
         """
-        pass
+        with open(filename, 'w') as outfile:
+            for counter, contig in enumerate(contigs):
+                header = f'>Contig {counter + 1} [organism=Mus musculus] [moltype=DNA]'
+                outfile.write(f'{header}\n{contig}\n')
+
 
     def get_starting_node(self):
         # Find a starting node (a node where nothing is being directed to it)
@@ -249,23 +312,26 @@ class DeBruijnGraph:
         # get the values and typecast it to a set
         # {key: set(self.graph[key]) for key in self.graph}
 
-
+        # Create a dictionary of sets
         graph_set = {}
         for key, value in self.graph.items():
             graph_set[key] = set(value)
 
+        # Initialized a list to hold starting node candidates
         starting_node_candidates = []
+
         # The starting vertex needs out-degree = in-degree + 1
         for node in self.graph.keys():
             in_degree = 0
+            # Out degree is the list of nodes
             out_degree = len(self.graph[node])
+
             for other_node in graph_set.keys():
                 if other_node == node:
                     continue
                 else:
                     if node in graph_set[other_node]:
                         in_degree += self.graph[other_node].count(node)
-
             if out_degree == in_degree + 1:
                 starting_node_candidates.append(node)
 
