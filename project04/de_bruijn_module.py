@@ -175,36 +175,20 @@ class DeBruijnGraph:
             >>> all(isinstance(c, str) for c in contigs)
             True
         """
-        # Starting Candidate -> Walk -> Sequence
-        # Starting Candidate -> Walk -> Sequence
-        # -> A list of Sequences that was derived from our graph
-        sequences = ["ATGGCGTACGTTACCATG", "ACCATGAATACCGGAATT", "ACGTTACCAT"]
         contigs = []
-        k = 6
-        for seq in sequences:
-            for next_seq in sequences:
-                if seq == next_seq:
-                    continue
-                if seq[:k+1] == next_seq[0:k]:
-                    new_sequence = seq + next_seq[k:]
-                    contigs.append(new_sequence)
+        # If all the edges has to be walked once that means our end game, then the values in our default dict needs to be empty
+        # while edges are present
+        while any(edge for edge in self.graph.values()):
+            # Get a starting node
+            starting_node = self.get_starting_node()
+            # Traverse the path - > contig
+            walk = self.eulerian_walk(starting_node, self.graph, self.seed)
+            # Convert contig into a sequence
+            contig = self.tour_to_sequence(walk)
+            # Append it to a list
+            contigs.append(contig)
 
-        print(contigs)
         return contigs
-        #Contig 1: S1 and Sq2 and S4
-        #Contig 2: S3 and S6 and S9
-        #Contig 3: S7 and S5 and S8
-
-        # Choose a starting node
-        # we get a path
-        # We turn in sequences
-        # ATGGCGTACGTTACCATG S1
-        # Choose another starting positino
-        # Get a path
-        # Turn in sequences
-        # Check for overlap
-        # GGCGTACGTTACCATGAA S2
-        # TGAAAAAAAAAAAAAAAA S3
 
 
     def tour_to_sequence(self, tour):
@@ -283,7 +267,7 @@ class DeBruijnGraph:
         return stats
 
 
-    def write_fasta(self, contigs, filename):
+    def write_fasta(self, contigs, filename, organism="Mus musculus"):
         """Write assembled contigs to a FASTA file.
 
         Args:
@@ -297,7 +281,7 @@ class DeBruijnGraph:
         """
         with open(filename, 'w') as outfile:
             for counter, contig in enumerate(contigs):
-                header = f'>Contig {counter + 1} [organism=Mus musculus] [moltype=DNA]'
+                header = f'>Contig {counter + 1} [organism={organism}] [moltype=DNA]'
                 outfile.write(f'{header}\n{contig}\n')
 
 
