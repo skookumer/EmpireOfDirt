@@ -7,6 +7,7 @@ traversal.
 
 from collections import defaultdict
 import random
+import numpy as np
 
 
 class DeBruijnGraph:
@@ -29,7 +30,7 @@ class DeBruijnGraph:
         True
     """
 
-    def __init__(self, reads, k):
+    def __init__(self, reads, k, seed):
         """Initialize De Bruijn graph from sequencing reads.
 
         Args:
@@ -45,6 +46,7 @@ class DeBruijnGraph:
         self.graph = defaultdict(list)
         self.k = k
         self.build_graph_from_reads(reads, k)
+        self.seed = seed
 
     def add_edge(self, left, right):
         """Add a directed edge to the graph.
@@ -75,7 +77,7 @@ class DeBruijnGraph:
             >>> len(dbg.graph["ATG"])
             0
         """
-        pass
+        return self.graph[left].remove(right)
 
     def build_graph_from_reads(self, reads, k):
         """Build De Bruijn graph from multiple sequencing reads.
@@ -127,7 +129,32 @@ class DeBruijnGraph:
             >>> len(tour) > 0
             True
         """
-        pass
+
+        # Recursion Method
+        # While list is not empty
+        if len(graph[node]) == 0:
+            return [node] # <- we should talk about this eventually
+
+        # Walk
+        #  Randomly choose a value from the list
+        next_node = np.random.choice(graph[node])
+
+        # Remove the value from that list
+        self.remove_edge(node, next_node)
+
+        # Get that key, and continue to randomly choose a value until we reach an empty list
+
+        x = self.eulerian_walk(next_node, graph, seed=seed)
+        x.append(node)
+        return x
+
+        # Alternative Approach (Loop method)
+        #y = [node]
+        #while len(graph[node]) > 0:
+        #    next_node = np.random.choice(graph[node])
+        #    self.remove_edge(node, next_node)
+        #    y.append(next_node)
+        #    node = next_node
 
     def assemble_contigs(self, seed=None):
         """Assemble all contigs from the De Bruijn graph.
@@ -148,7 +175,21 @@ class DeBruijnGraph:
             >>> all(isinstance(c, str) for c in contigs)
             True
         """
-        pass
+        contigs = []
+        # If all the edges has to be walked once that means our end game, then the values in our default dict needs to be empty
+        # while edges are present
+        while any(edge for edge in self.graph.values()):
+            # Get a starting node
+            starting_node = self.get_starting_node()
+            # Traverse the path - > contig
+            walk = self.eulerian_walk(starting_node, self.graph, self.seed)
+            # Convert contig into a sequence
+            contig = self.tour_to_sequence(walk)
+            # Append it to a list
+            contigs.append(contig)
+
+        return contigs
+
 
     def tour_to_sequence(self, tour):
         """Convert a tour of (k-1)-mers into a DNA sequence.
@@ -165,7 +206,12 @@ class DeBruijnGraph:
             >>> dbg.tour_to_sequence(tour)
             'ATGGCG'
         """
-        pass
+        seq = [tour[0]]
+        for kmer in tour[1:]:
+            seq.append(kmer[-1])
+
+        return ''.join(seq)
+
 
     def get_assembly_stats(self, contigs):
         """Calculate assembly statistics for assembled contigs.
@@ -189,9 +235,39 @@ class DeBruijnGraph:
             >>> stats['num_contigs']
             3
         """
-        pass
+        stats = dict()
+        # Number contigs == length of contigs list
+        stats['num_contigs'] = len(contigs)
 
-    def write_fasta(self, contigs, filename):
+        # Total Assembled seq length == total number of bp generated across contigs
+        bp_count = 0
+        for contig in contigs:
+            bp_count += len(contig)
+        stats['total_length'] = bp_count
+
+        # Length of longest contig
+        stats['longest_contig'] = max(len(contig) for contig in contigs)
+
+        # Length of shortest contig
+        stats['shortest_contig'] = min(len(contig) for contig in contigs)
+
+        # Mean contig length
+        stats['mean_length'] = sum(len(contig) for contig in contigs) / len(contigs)
+
+        # If you sort all contigs by size, the N50 is the length of the contig where the sum of lengths starting from the longest equals 50% of the total assembly size.
+        sorted_contigs = sorted(contigs, key=len, reverse=True)
+        bp_half = round(bp_count / 2, 0)
+        sum_length = 0
+        for contig in sorted_contigs:
+            sum_length += len(contig)
+            if sum_length >= bp_half:
+                break
+        stats['n50'] = sum_length
+
+        return stats
+
+
+    def write_fasta(self, contigs, filename, organism="Mus musculus"):
         """Write assembled contigs to a FASTA file.
 
         Args:
@@ -203,4 +279,48 @@ class DeBruijnGraph:
             >>> dbg = DeBruijnGraph([], k=4)
             >>> dbg.write_fasta(contigs, "output.fasta")
         """
-        pass
+        with open(filename, 'w') as outfile:
+            for counter, contig in enumerate(contigs):
+                header = f'>Contig {counter + 1} [organism={organism}] [moltype=DNA]'
+                outfile.write(f'{header}\n{contig}\n')
+
+
+    def get_starting_node(self):
+        # Find a starting node (a node where nothing is being directed to it)
+        ## Ensure that a key does not exist as a value (computationally expensive)
+
+        # Could we start randomly and not worry about
+        # Cast the list as a set
+        # Changing initialization of defaultdict
+        # Iterate through the keys in default dict
+        # get the values and typecast it to a set
+        # {key: set(self.graph[key]) for key in self.graph}
+
+        # Create a dictionary of sets
+        graph_set = {}
+        for key, value in self.graph.items():
+            graph_set[key] = set(value)
+
+        # Initialized a list to hold starting node candidates
+        starting_node_candidates = []
+
+        # The starting vertex needs out-degree = in-degree + 1
+        for node in self.graph.keys():
+            in_degree = 0
+            # Out degree is the list of nodes
+            out_degree = len(self.graph[node])
+
+            for other_node in graph_set.keys():
+                if other_node == node:
+                    continue
+                else:
+                    if node in graph_set[other_node]:
+                        in_degree += self.graph[other_node].count(node)
+            if out_degree == in_degree + 1:
+                starting_node_candidates.append(node)
+
+        return np.random.choice(starting_node_candidates)
+
+
+
+
