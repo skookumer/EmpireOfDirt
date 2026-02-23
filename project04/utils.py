@@ -17,7 +17,9 @@ def read_fastq(filename):
         10
     """
     sequences = []
-    with open(filename, 'r') as f:
+    f = gzip.open(filename, 'rt') #use gzip here
+
+    with f:
         line_count = 0
         for line in f:
             line_count += 1
