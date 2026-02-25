@@ -36,7 +36,8 @@ get stats
 ### Struggles
 1. We were struggling to identifying our starting point for graph traversal.
 2. Transitioning the logic from graphs to sequences(contigs).
-3. It was also hard for us to come up with a more appropriate stopping condition (syntatically) for looping until all the edges are consumed. 
+3. It was also hard for us to come up with a more appropriate stopping condition (syntatically) for looping until all the edges are consumed.
+4. Even with just 10,000 sequences of data, the algorithm is taking over an hour to run on my decent laptop (AMD 7840HS; 64gb ram). So perhaps there is an issue somewhere in the code that we didn't address.
 
 ### Reflections
 
