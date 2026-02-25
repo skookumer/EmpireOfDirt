@@ -1,8 +1,9 @@
 import time
 from datetime import datetime
 from de_bruijn_module import DeBruijnGraph
+import gzip
 
-def read_fastq(filename):
+def read_fastq(filename, n_rows=10000):
     """Read sequences from a FASTQ file.
 
     Args:
@@ -25,6 +26,8 @@ def read_fastq(filename):
             line_count += 1
             if line_count % 4 == 2:  # Sequence line in FASTQ format
                 sequences.append(line.strip())
+            if len(sequences) == n_rows:
+                break
     return sequences
 
 
@@ -141,7 +144,7 @@ def write_statistics_file(
 
 
 def assemble_mouse_genome(
-    input_file="data/mouse_SE_150bp.fq",
+    input_file="data/mouse_SE_150bp.fq.gz",
     output_fasta="mouse_assembly.fasta", 
     stats_file="mouse_assembly_stats.txt",
     k_mer_size = 51,

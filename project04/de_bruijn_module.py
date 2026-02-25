@@ -30,7 +30,7 @@ class DeBruijnGraph:
         True
     """
 
-    def __init__(self, reads, k, seed):
+    def __init__(self, reads, k, seed=42):
         """Initialize De Bruijn graph from sequencing reads.
 
         Args:
