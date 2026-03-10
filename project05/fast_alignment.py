@@ -47,8 +47,8 @@ def align_sequences(a, b, schema, seq_a, seq_b, i=0, j=0, cum_score=0, matrix=No
         align_sequences(a, b, schema, gapped_seq_a, seq_b, i=i, j=j+1, cum_score=cum_score, matrix=matrix)
         align_sequences(a, b, schema, seq_a, gapped_seq_b, i=i+1, j=j, cum_score=cum_score, matrix=matrix)
 
-
-def fill_matrix(a, b):
+@njit
+def fill_matrix_fast(a, b, nw=1):
 
     def d(i, j):
         if a[i-1] == b[j-1]:
@@ -60,52 +60,24 @@ def fill_matrix(a, b):
     y = len(b) + 1
     A = np.zeros(shape=(x, y), dtype=np.int8)
 
-    for i in range(x):
-        A[i, 0] = i * -1
-    for j in range(y):
-        A[0, j] = j * -1
+    if nw:
+        for i in range(x):
+            A[i, 0] = i * -1
+        for j in range(y):
+            A[0, j] = j * -1
+        s = 1
+    else:
+        s = 0
 
-    for i in range(1, x):
-        for j in range(1, y):
-            score = max([A[i-1, j-1] + d(i, j), A[i-1, j] - 1, A[i, j-1] - 1])
+    for i in range(s, x):
+        for j in range(s, y):
+            if nw:
+                score = max([A[i-1, j-1] + d(i, j), A[i-1, j] - 1, A[i, j-1] - 1])
+            else:
+                score = max([A[i-1, j-1] + d(i, j), A[i-1, j] - 1, A[i, j-1] - 1, 0])
             A[i, j] = score
     
     return A
-
-# def traceback(a, b, i, j, A, B=None):
-
-#     if B is None:
-#         B = np.full(shape=A.shape, fill_value=" ", dtype="U10")
-    
-#     def d(i, j):
-#         if a[i-1] == b[j-1]:
-#             return 1
-#         else:
-#             return -1
-    
-#     B[i, j] = str(A[i, j])
-#     print(B)
-    
-#     if i == 0 and j == 0:
-#         return None
-
-#     x = A[i, j]
-#     output = []
-#     if i > 0:
-#         if x == A[i-1, j] + 1 or j == 0:
-#             B[i, j] = "u"
-#             output.append({"u": traceback(a, b, i-1, j, A, B.copy())})
-#     if j > 0:
-#         if x == A[i, j-1] + 1 or i == 0:
-#             B[i, j] = "l"
-#             output.append({"l": traceback(a, b, i, j-1, A, B.copy())})
-#     if i > 0 and j > 0:
-#         if x == A[i-1, j-1] + d(i, j):
-#             B[i, j] = "d"
-#             output.append({"d": traceback(a, b, i-1, j-1, A, B.copy())})
-#     if len(output) > 0:
-#         return output
-#     return None
 
 
 def traceback(a, b, i, j, A, B=None, toprint=False):
@@ -199,7 +171,7 @@ def decode_sequence(seq):
     return "".join(decode_map[seq])
 
 @njit
-def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0):
+def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0, nw=1):
     
     def return_empty():
         B = JitList()
@@ -212,8 +184,12 @@ def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0):
         else:
             return -1
 
-    if i == 0 and j == 0:
-        return return_empty()
+    if nw:
+        if i == 0 and j == 0:
+            return return_empty()
+    else:
+        if A[i, j] == 0:
+            return return_empty()
     
     P = None
     Q = None
@@ -223,7 +199,7 @@ def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0):
     x = A[i, j]
     if i > 0:
         if x == A[i-1, j] - 1 or j == 0:
-            P = fast_traceback(a_encoded, b_encoded, i-1, j, max_len, A, ptr + 1)
+            P = fast_traceback(a_encoded, b_encoded, i-1, j, max_len, A, ptr + 1, nw)
             # print("P", P)
             if P is not None:
                 for p in range(len(P)):
@@ -232,7 +208,7 @@ def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0):
                     output.append(P[p])
     if j > 0:
         if x == A[i, j-1] - 1 or i == 0:
-            Q = fast_traceback(a_encoded, b_encoded, i, j-1, max_len, A, ptr + 1)
+            Q = fast_traceback(a_encoded, b_encoded, i, j-1, max_len, A, ptr + 1, nw)
             # print("Q", Q)
             if Q is not None:
                 for p in range(len(Q)):
@@ -241,7 +217,7 @@ def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0):
                     output.append(Q[p])
     if i > 0 and j > 0:
         if x == A[i-1, j-1] + d(i, j):
-            R = fast_traceback(a_encoded, b_encoded, i-1, j-1, max_len, A, ptr + 1)
+            R = fast_traceback(a_encoded, b_encoded, i-1, j-1, max_len, A, ptr + 1, nw)
             # print("R", R)
             if R is not None:
                 for p in range(len(R)):
@@ -254,6 +230,18 @@ def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0):
     return return_empty()
     
 
+
+def align_sequences(seq_a, seq_b, nw=1):
+
+    seq_a, seq_b = encode_seq(seq_a), encode_seq(seq_b)
+
+    A = fill_matrix_fast(seq_a, seq_b, nw)
+    if not nw:
+        i, j = np.unravel_index(np.argmax(A), A.shape)
+    else:
+        i, j = A.shape
+    paths = fast_traceback(seq_a, seq_b, i, j, 2 * max(A.shape), A, nw=nw)
+    return paths
 
 
     
@@ -271,7 +259,7 @@ def fast_traceback(a_encoded, b_encoded, i, j, max_len, A, ptr=0):
 if __name__ == "__main__":
     # align_sequences(a, b, seq_a="", seq_b="", schema=schema)
     
-    A = fill_matrix(a, b)
+    A = fill_matrix_fast(a, b)
     print(A)
 
     print("\npythonic\n")
@@ -281,14 +269,7 @@ if __name__ == "__main__":
             print(key, "".join(path[key]))
 
     print("\nFAST\n")
-    a1 = encode_seq(a)
-    b1 = encode_seq(b)
-    paths = fast_traceback(a1, 
-                           b1, 
-                           A.shape[0] - 1, 
-                           A.shape[1] - 1, 
-                           2 * max(A.shape),
-                           A)
+    paths = align_sequences(a, b, nw=0)
     for path in paths:
         for seq in path:
             print(decode_sequence(seq))
@@ -299,7 +280,7 @@ if __name__ == "__main__":
     import time
     print("----------TESTTEST-----------")
 
-    A = fill_matrix(seq_a, seq_b)
+    A = fill_matrix_fast(seq_a, seq_b)
 
     t0 = time.time()
     paths = traceback(seq_a, seq_b, A.shape[0] - 1, A.shape[1] - 1, A, toprint=False)
@@ -308,15 +289,9 @@ if __name__ == "__main__":
         for key in path:
             print(key, "".join(path[key]))
 
-    a1 = encode_seq(seq_a)
-    b1 = encode_seq(seq_b)
+    
     t1 = time.time()
-    paths = fast_traceback(a1, 
-                        b1, 
-                        A.shape[0] - 1, 
-                        A.shape[1] - 1, 
-                        2 * max(A.shape),
-                        A)
+    paths = align_sequences(seq_a, seq_b, nw=0)
     print("TIME2", time.time()-t1)
     for path in paths:
         for seq in path:
