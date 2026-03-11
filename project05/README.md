@@ -88,6 +88,9 @@ Implementation 3 was our attempt to bridge that gap. Admittedly, this was Eric
 
 Overall, the progression from Implementation 1 to 2 to 3 taught me a lot about the balance between correctness, clarity, and performance. Implementation 1 showed how easy it is to get the logic wrong. Implementation 2 showed how to get the biology right. Implementation 3 showed what it takes to make an algorithm scale to real‑world data. Working through all three gave me a much deeper appreciation for the design decisions behind real alignment tools, and it made the project feel both challenging and genuinely rewarding.
 
+Thu Thu Han:
+I think it was really rewarding to work with Eric and Stefanie in this project. They were really great teammates who really took time to help me understand the algorithm as I really struggled to understand this week's project in the beginning. I think compared to previous projects, this week's project was way more simpler once you understand the algorithm and the psuedocode in the instructions. I struggled a little with the traceback process but I think overall I got the most out of this week than the previous weeks. 
+
 ### GenAI appendix
 Claude used to generate some of the examples, troubleshoot syntax with numpy
 Prompts:
