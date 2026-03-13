@@ -4,6 +4,10 @@
 
 ```python
 
+Open file
+    read sequences
+    return sequences as strings
+
 Neighbor-Joining Algorithm
 
 let D be a matrix D x n
