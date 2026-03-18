@@ -3,11 +3,16 @@ from typing import Dict, List, Tuple
 import numpy as np
 import textdistance as td 
 from pairwise_scorers import hamming, p_distance, jukes_cantor, poisson
+from typing import Callable, Union
 
 # dispatcher that will be called in build_distance_matrix() 
 # it computes pairwise distance scores using appropriate scoring model
-def score_distance(seq1: str, seq2: str, scoring_model: str = "hamming", sequence_type: str = "protein")\
+def score_distance(seq1: str, seq2: str, scoring_model: Union[str, Callable] = "hamming", sequence_type: str = "protein")\
     -> float:
+
+    if callable(scoring_model):
+        return scoring_model(seq1, seq2)
+
     scoring_model = scoring_model.lower()
     if scoring_model == "hamming":
         dist = hamming(seq1,seq2)
