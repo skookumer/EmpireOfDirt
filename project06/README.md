@@ -63,6 +63,8 @@ Plot using Phylo
 # Successes
 A successful implementation of the algorithm; conversion of newick strings; overall introduction to phylogenetic trees.
 
+Normalization of Smith-Waterman
+
 # Struggles
 Not necessarily a struggle, but the matrix manipulations required some thought. Recursively building the newick string required two passes, and the final version ended up being much simpler than our initial draft. 
 
