@@ -2,7 +2,7 @@
 
 Welcome to our phylogenetic tree builder. Please see the notebook project06.ipynb for our demonstration. The other scripts are helper functions. We decided to test multiple distance metrics against one another and are showing a couple of those in the code. A critical question during this project was how to convert the smith-waterman score into a metric. Ultimately, this looked like the complement of the smith waterman score normalized by the minimum of the maximum possible scores for both sequences (i.e. the sequences are aligned against themselves).
 
-$1 - SW(A, B) / (SW(A), SW(B))$
+$1 - SW(A, B) / min(SW(A), SW(B))$
 
 We also discussed the differences between the recursive approach to the problem shown in class and the version shown in the notebook. It became clear that the notebook option was the way to go because our scores probably wouldn't satisfy the triangle inequality.
 
