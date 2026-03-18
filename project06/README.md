@@ -57,4 +57,6 @@ Plot using SeqIO? (some biopython package)
 
 # Struggles
 
+# Reflections
+Sneha: This project was a challenge for me because the group worked at a much faster pace than I was used to in previous group settings. I found it difficult at times to keep up with the speed of development and discussions, which made me feel somewhat overwhelmed, especially early on. However, this also pushed me to become more proactive in reviewing the code independently and making sure I truly understood each component. One of the most challenging parts for me was understanding the recursion used to walk the tree and construct the Newick string. Initially, I struggled to grasp how the function was traversing the tree and building the output from the bottom up. The idea that each node relies on the fully computed results of its children before contributing its own portion of the string was not immediately intuitive. It was interesting to play around with the plots and look ar different scoring methods to see how they were affected. 
 # AI appendix
