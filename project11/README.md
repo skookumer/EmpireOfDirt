@@ -12,8 +12,9 @@ What distinguishes our profile HMM from the regular HMM is A) the use of matrice
 ## Baum-Welch + fwd + bwd
 ```python
 
-Function: BuildProfileHMM(alignment) Description: Construct Match, Insert, and Delete states from a multiple sequence alignment.
-Pseudocode:
+Function: MSA alignment
+Description: Construct Match, Insert, and Delete states from a multiple sequence alignment.
+
 1.	Determine the number of alignment columns.
 
 2.	For each column:
@@ -53,8 +54,6 @@ Pseudocode:
             set all outgoing transitions to 1 (deterministic).
 
 7.	Return the full Profile HMM structure.
-<img width="468" height="536" alt="image" src="https://github.com/user-attachments/assets/1c84adbe-70d8-4278-b9c7-1abf6d25549f" />
-
 
 
     function _forward_table
