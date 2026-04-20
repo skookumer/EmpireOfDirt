@@ -11,6 +11,21 @@ What distinguishes our profile HMM from the regular HMM is A) the use of matrice
 
 ## Baum-Welch + fwd + bwd
 ```python
+class profile-HMM
+    N is the number of states (1 = Match, 2 = Insert, 3 = Delete)
+    L is the max sequence length
+
+    let vocab be the 20 amino acids and "-" and "Z" and "Not" (nothing)   #assuming Z is the non-existing amino acid
+    let transitions be a stack of all transition probabilities          #dim: N x N x L
+    let emissions matrix be a stack of all emission probabilities       #dim: N x vocab x L
+
+    #Emission matrix example:
+    M  0.1  0.23...
+    I  0.5, 0.25...
+    D  0    0...       1.0
+        P    R    Y    Not
+
+    let avg_len be the average length of the input sequences
 
 Function: MSA alignment
 Description: Construct Match, Insert, and Delete states from a multiple sequence alignment.
