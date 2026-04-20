@@ -11,6 +11,7 @@ What distinguishes our profile HMM from the regular HMM is A) the use of matrice
 
 ## Baum-Welch + fwd + bwd
 ```python
+
 class profile-HMM
     N is the number of states (1 = Match, 2 = Insert, 3 = Delete)
     L is the max sequence length
@@ -23,9 +24,55 @@ class profile-HMM
     M  0.1  0.23...
     I  0.5, 0.25...
     D  0    0...       1.0
-        P    R    Y    Not
+        P    R    Y    
 
     let avg_len be the average length of the input sequences # normailzing the column len of the matrix : avg len = sum of seq leq / total no of seqs
+
+Function: MSA alignment
+Description: Construct Match, Insert, and Delete states from a multiple sequence alignment.
+
+1.	Determine the number of alignment columns.
+
+2.	For each column:
+        Count the number of matches and gap.
+    	If the proportion of gaps is less than 50%, mark this column as a Match column.
+    	Otherwise, mark this column as an Insertion column.
+
+3.	Create the following states in order:
+        Begin state
+        For each column k:
+    	    Match state Mk
+    	    Insert state Ik
+    	    Delete state Dk
+    	End state
+
+4.	Initialize emission distributions:
+        For each Match state Mk:
+    	    Count residues in column k (excluding gaps).
+    	    Convert counts to probabilities.
+    	For each Insert state Ik:
+        	Initialize with background frequencies or uniform distribution.
+    	For each Delete state Dk:
+        	No emissions.
+
+5.	Initialize transition structure:
+    	From Begin: transitions to M1 and D1.
+    	For each k from 1 to K−1:
+        	Mk → Mk+1, Ik, Dk+1
+        	Ik → Ik, Mk+1
+        	Dk → Dk+1, Mk+1
+    	From final states Mk, Ik, Dk: transitions to End.
+
+6.	Initialize transition probabilities:
+    	For Match and Insert states:
+            estimate from alignment paths.
+    	For Delete states:
+            set all outgoing transitions to 1 (deterministic).
+
+7.	Return the full Profile HMM structure.
+
+
+
 
     function _forward_table
         let seq be the input sequence # loop through one seq by one seq
