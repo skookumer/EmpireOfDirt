@@ -141,38 +141,6 @@ Description: Construct Match, Insert, and Delete states from a multiple sequence
         reassign matrices for next iteration
 
 
-# MSA
- 
-for seq in sequences
-    initiliaze a sequence matrix [no of seq x avg_len] # empty matrix
-    fill the sequence one by one (row by row)
-
- function assign consensus states to columns in sequence matrix
-    consensus states = empty list
-    set the gap threshold 0.5 
-
-    for each column j in sequence matrix
-        get all residues in column j across sequences
-        count the number of gaps '-' in column j
-        gap percentage = no of gap / total rows in column j 
-
-        if gap percentage < gap threshold
-            append M to consensus states list # Match column
-        else
-            append I to consesus states list # Insertion column
-
-return consensus states
-
-
-            
-            
-        
-
-
-
-
-## MSA initialisation
-
 ```python
     
 ```
@@ -188,6 +156,10 @@ An unintuitve aspect of MSA initialization is determining what we caleld the "co
 ## Thu Thu Han
 
 ## Stefanie Moreno
+
+This assignment was challenging in that there was a lot of conflicting information across resources and very different interpretations among team members. Despite meeting many times over the week, I didn’t feel that we were able to fully overcome the difficulties caused by miscommunication, differences in coding proficiency, and the general complexity of Profile HMMs. Even so, working through these obstacles forced me to clarify the underlying concepts much more deeply than I would have otherwise. I had to reconcile multiple definitions of match, insert, and delete states, understand how silent states behave in the algorithms, and translate the theoretical model into a consistent pseudocode framework. Although the group struggled to align on a unified approach, the process helped me strengthen my own understanding of how Profile HMMs are constructed and why their architecture is so sensitive to small conceptual misunderstandings. In the end, the assignment pushed me to be more precise, more patient, and more confident in my ability to navigate ambiguity in computational biology.
+
+
 
 # AI Appendix
 "Daddy Claude," as he is known, is a friend, but he wasn't much help with the convergence issues, which needed to be resolved manually by printing. He was of help in understanding why the 2d masks were falling apart though and helping fix that bug.
