@@ -10,6 +10,7 @@ What distinguishes our profile HMM from the regular HMM is A) the use of matrice
 
 ## MSA initialization
 
+```python
 Function: MSA alignment
 Description: Construct Match, Insert, and Delete states from a multiple sequence alignment.
 
@@ -52,6 +53,8 @@ Description: Construct Match, Insert, and Delete states from a multiple sequence
             set all outgoing transitions to 1 (deterministic).
 
 7.	Return the full Profile HMM structure.
+
+```
 
 ## Baum-Welch + fwd + bwd
 ```python
